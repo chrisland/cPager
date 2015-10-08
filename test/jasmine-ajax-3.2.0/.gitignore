@@ -1,0 +1,5 @@
+.idea/
+.rvmrc
+*.swp
+bower_components
+node_modules
