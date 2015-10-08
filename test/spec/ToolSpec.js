@@ -57,6 +57,15 @@ describe("cPager", function() {
 		
 		});
 		
+		
+		it("init should have set default options param (tmplPath)", function() {
+		
+			var pager = new cPager();
+
+			expect(pager._opt.tmplPath).toBe('tmpl');
+		
+		});
+		
 		it("init should have set default options param (displayStyle)", function() {
 		
 			var pager = new cPager();
@@ -213,11 +222,10 @@ describe("cPager", function() {
 */
 
 
-
-	describe("changePageById()", function() {
+	describe("changePageById() spyOn", function() {
 		
 		var pageId = 'page';
-		var pager;
+		var myPager;
 		
 		beforeEach(function() {
 			
@@ -228,36 +236,261 @@ describe("cPager", function() {
 			document.body.appendChild(newDiv); 
 			
 			
-			pager = new cPager({
+			myPager = new cPager({
 				start: 'home'
 			});
 			
 			
-			spyOn(pager, 'changePageById');
+			spyOn(myPager, 'changePageById');
 			
 		});
 		
 		
 		afterEach(function() {
-			
+			myPager = undefined;
 			document.getElementById(pageId).remove();
 		});
 
 		
-		
-		it("changePageById sould get be called ", function() {
-		
-			pager.changePageById();
 
-			expect(pager.changePageById).toHaveBeenCalled();
+		
+		it("changePageById() should be called ", function() {
+		
+			//console.log('----hier');
+			
+			myPager.changePageById();
+
+			expect(myPager.changePageById).toHaveBeenCalled();
 		
 		});
+		
+		
+		
+	});
+	
+
+	describe("changeContent() spyOn", function() {
+		
+		var pageId = 'page';
+		var myPager;
+		
+		beforeEach(function() {
+			
+			
+			var newDiv = document.createElement("div"); 
+			newDiv.id = pageId;
+			
+			document.body.appendChild(newDiv); 
+			
+			
+			myPager = new cPager({
+				start: 'home'
+			});
+			
+			
+			spyOn(myPager._h, 'changeContent');
+			
+		});
+		
+		
+		afterEach(function() {
+			myPager = undefined;
+			document.getElementById(pageId).remove();
+		});
+
+		
+
+		
+		it("changePageById() should be called _h.changeContent() ", function() {
+		
+			//console.log('----hier');
+			
+			myPager.changePageById();
+
+			expect(myPager._h.changeContent).toHaveBeenCalled();
+		
+		});
+		
+		
+		
+	});
+	
+	
+	
+	describe("changePageById()", function() {
+		
+		var pageId = 'page';
+		var myPager;
+		
+		beforeEach(function() {
+			
+			
+			var newDiv = document.createElement("div"); 
+			newDiv.id = pageId;
+			
+			document.body.appendChild(newDiv); 
+			
+			
+			myPager = new cPager({
+				start: 'home',
+				tmplPath: '../test/tmpl'
+			});
+			
+			
+		});
+		
+		
+		afterEach(function() {
+			myPager = undefined;
+			document.getElementById(pageId).remove();
+		});
+
+		
+
+		
+		it("changePageById() should return this", function() {
+			
+			var ret = myPager.changePageById();
+
+			//console.log(myPager);
+			//console.log(ret);
+			
+			expect(ret).toBe(myPager);
+		
+		});
+		
+		
+		
+		it("changePageById() should set task", function() {
+			
+			var ret = myPager.changePageById();
+
+			//console.log(myPager);
+			//console.log(ret.changePageById.task);
+			
+			expect(ret.changePageById.task).not.toBe();
+		
+		});
+		
+		
+		it("changePageById() load tmpl default home.tpl", function() {
+			
+			var ret = myPager.changePageById();
+
+			//console.log(myPager);
+			//console.log(ret.changePageById.task);
+			
+			expect(ret.changePageById.task).not.toBe();
+		
+		});
+		
+
+
+		
+		
+		
 		
 		
 	});
 
 
 
+
+	describe("fadePageDom() spyOn", function() {
+		
+		var pageId = 'page';
+		var myPager;
+		
+		beforeEach(function() {
+			
+			
+			var newDiv = document.createElement("div"); 
+			newDiv.id = pageId;
+			
+			document.body.appendChild(newDiv); 
+			
+			
+			myPager = new cPager({
+				start: 'home'
+			});
+			
+			
+			spyOn(myPager._h, 'fadePageDom');
+			
+		});
+		
+		
+		afterEach(function() {
+			myPager = undefined;
+			document.getElementById(pageId).remove();
+		});
+
+		
+
+		
+		it("changePageById() should  called _h.fadePageDom()  ", function() {
+		
+			//console.log('----hier');
+			
+			myPager.changePageById();
+
+			expect(myPager._h.fadePageDom).toHaveBeenCalled();
+		
+		});
+		
+		
+		
+	});
+	
+	
+
+
+
+	describe("addBtnEventListener() spyOn", function() {
+		
+		var pageId = 'page';
+		var myPager;
+		
+		beforeEach(function() {
+			
+			
+			var newDiv = document.createElement("div"); 
+			newDiv.id = pageId;
+			
+			document.body.appendChild(newDiv); 
+			
+			
+			myPager = new cPager({
+				start: 'home'
+			});
+			
+			
+			spyOn(myPager._h, 'addBtnEventListener');
+			
+		});
+		
+		
+		afterEach(function() {
+			myPager = undefined;
+			document.getElementById(pageId).remove();
+		});
+
+		
+
+		
+		it("changePageById() should allways called _h.addBtnEventListener()  ", function() {
+		
+			//console.log('----hier');
+			
+			myPager.changePageById();
+
+			expect(myPager._h.addBtnEventListener).toHaveBeenCalled();
+		
+		});
+		
+		
+		
+	});
 
 
 

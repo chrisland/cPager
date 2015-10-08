@@ -22,6 +22,7 @@ function cPager(param) {
 	this._lastopen = false;
 	this._opt = {
 		handler: 'pageBtn',
+		tmplPath: 'tmpl',
 		displayStyle: 'block',
 		offButton: 'pageBtnOffline',
 		container: 'page',
@@ -60,50 +61,128 @@ function cPager(param) {
 
 
 cPager.prototype.changePageById = function (pageId, pageTask, pageContent) {
+	
+
+	
 	console.log('changePageById', pageId, pageTask, pageContent);
 	
-	var task = changeContent( null, pageTask, pageContent, pageId);
-	if (task) {
+	this.changePageById.task = this._h.changeContent( null, pageTask, pageContent, pageId);
+	if (this.changePageById.task) {
+
+		this._h.fadePageDom(pageId, function () {
 /*
-		fadePageDom(pageId, function () {
 			if (typeof(task) === "function") {
 				task();
 			}
-			addBtnEventListener();
+			this._h.addBtnEventListener();
 			addPageHistory(pageId,pageTask,pageContent);
+*/
+
+			
 		});
-		return true;
-		*/
+		
 	}
 
-	//addBtnEventListener();
+	this._h.addBtnEventListener();
 	
-	return false;
+	return this;
 	
 	
 };
 
 
-function changeContent (e, task, content, pageId) {
+
+
+cPager.prototype._h = {
 	
+	 changeContent : function (e, task, content, pageId) {
+		
+		console.log('changeContent', e, task, content, pageId);
+		
+		/*
+		if (task == 'back') {
+			var history = getPageHistory();
+			var last = history[history.length-2];
+			if (!last) {
+				return false;
+			}
+			if (last.pageId) {
+				APS.page.changePageById(last.pageId,last.pageTask,last.pageContent);				
+				kickLastPageHistory(2);
+			}
+			return true;	
+		} else if (APS.task && APS.task[task]) {
+			return APS.task[task](pageId,content,e,$_page);
+		}
+		*/
+		return true;
+	},
+	ajax: function (path, success ) {
+		
+		console.log(location.pathname);
+		
+		var arr = location.pathname.split('/');
+		arr = arr.slice(1,arr.length-1).join('/');
+		
+		
+		var r = new XMLHttpRequest();
+		r.open("POST", 'file:///'+arr+'/'+path, true);
+		r.onreadystatechange = function () {
+		  if (r.readyState != 4 || r.status != 200) return;
+		  //alert("Success: " + r.responseText);
+		  if (typeof success === 'function') {
+			  success(r.responseText);
+		  }
+		};
+		r.send();
+		
+	},
+	fadePageDom : function (pageId, callback) {
+		
+		console.log('changeContent', pageId);
+		
+		if (pageId) {
+			this.ajax( 'tmpl/'+pageId+'.tpl' , function (response) {
+				console.log('response',response);
+			});
+		}
+		
 /*
-	if (task == 'back') {
-		var history = getPageHistory();
-		var last = history[history.length-2];
-		if (!last) {
-			return false;
+		if (pageId) {
+			jQuery.ajax({
+		      url: 'tmpl/'+pageId+'.tpl',
+		      dataType: 'html',
+		      cache: false,
+		      success: function(data, status, response) {
+		        
+		        var $_page = document.getElementById(options.container);
+		        $_page.innerHTML = data;
+		        
+				if (options.mockup[pageId]) {
+				    var wrap = makeMockupBtn(options.mockup[pageId], pageId);
+				    $_page.appendChild(wrap);
+			    }
+				lastopen = open;
+				open = pageId;
+				
+				if (callback) {
+					callback();
+				}
+		      }
+		    });
+		    			
 		}
-		if (last.pageId) {
-			APS.page.changePageById(last.pageId,last.pageTask,last.pageContent);				
-			kickLastPageHistory(2);
-		}
-		return true;	
-	} else if (APS.task && APS.task[task]) {
-		return APS.task[task](pageId,content,e,$_page);
-	}
 */
-	return true;
-}
+		return false;
+	},
+	addBtnEventListener: function () {
+		
+		console.log('addBtnEventListener');
+		
+	}
+	
+	
+};
 
 
 
