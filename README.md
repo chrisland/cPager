@@ -16,7 +16,7 @@ Author: Christian Marienfeld post@chrisand.de
 		container: 'page',
 		start: 'home',
 		tasks: {
-			'myTask': function () {
+			'myTask': function (pageId, pageContent, event, dom) {
 				
 				alert('myTask before');
 			
@@ -29,6 +29,8 @@ Author: Christian Marienfeld post@chrisand.de
 
 	myPager.switch('myPage');
 
+	myPager.switch('myPage','myTask','testContent');
+
 	myPager.switch('myFolder/myPage'); // will open ./tmpl/myFolder/myPage.tpl
 
 
@@ -37,7 +39,7 @@ Author: Christian Marienfeld post@chrisand.de
 
 * **Object** cPager Object
 
-###--------------------------------
+#####------------------------------------------------------
 
 ## switch([pageId=undefined], [pageTask=undefined], [pageContent=undefined])
 
@@ -77,7 +79,7 @@ Version: 0.1.0
 
 * **Object** cPager object
 
-###--------------------------------
+#####------------------------------------------------------
 
 ## events()
 
@@ -97,7 +99,7 @@ Version: 0.1.0
 
 * **Boolean** true or false
 
-###--------------------------------
+#####------------------------------------------------------
 
 ## getHistory()
 
@@ -115,7 +117,7 @@ Version: 0.1.0
 
 * **Array** History array
 
-###--------------------------------
+#####------------------------------------------------------
 
 ## removeHistory()
 

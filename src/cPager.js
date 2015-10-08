@@ -13,7 +13,7 @@
 *		container: 'page',
 *		start: 'home',
 *		tasks: {
-*			'myTask': function () {
+*			'myTask': function (pageId, pageContent, event, dom) {
 *				
 *				alert('myTask before');
 *			
@@ -25,6 +25,8 @@
 *	});
 *
 *	myPager.switch('myPage');
+*
+*	myPager.switch('myPage','myTask','testContent');
 *
 *	myPager.switch('myFolder/myPage'); // will open ./tmpl/myFolder/myPage.tpl
 *
