@@ -6,7 +6,7 @@
 
 Easy JS one-Page system framework with template files
 
-Version: 0.1.0
+Version: 0.1.1
 
 Author: Christian Marienfeld post@chrisand.de 
 
