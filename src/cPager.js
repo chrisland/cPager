@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.1.1
+* @version 0.1.2
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -334,27 +334,66 @@ cPager.prototype._h = {
 		var thatAjax = this;
 		if ( that.ajaxCache[path] ) {
 			thatAjax.ajaxSuccess(that.ajaxCache[path], pageId, pageTask, pageContent, that);
-		} else {
-			var xhr = new XMLHttpRequest();
-			xhr.open("POST", path, true);
-			xhr.onreadystatechange = function () {
-			  if (xhr.readyState != 4 || xhr.status != 200) return;
-			  that.ajaxCache[path] = xhr.responseText;
-			  thatAjax.ajaxSuccess(xhr.responseText, pageId, pageTask, pageContent, that);
-			};
-			xhr.send();
+		} else {			
+			this.sendRequest(path,function (req) {
+				that.ajaxCache[path] = req.responseText;
+				thatAjax.ajaxSuccess(req.responseText, pageId, pageTask, pageContent, that);				
+			});		    
 		}		
 	},
 	switchDom : function (that, pageId, pageTask, pageContent) {
 		
 		//console.log('switchDom', pageId);
 		if (pageId) {
-			this.ajax( that, that._opt.tmplPath+'/'+pageId+'.tpl', pageId, pageTask, pageContent);
+			this.ajax( that, './'+that._opt.tmplPath+'/'+pageId+'.tpl', pageId, pageTask, pageContent);
 		}
 		return false;
+	},
+	sendRequest: function (url,callback,postData) {
+		
+		var XMLHttpFactories = [
+		    function () {return new XMLHttpRequest()},
+		    function () {return new ActiveXObject("Msxml2.XMLHTTP")},
+		    function () {return new ActiveXObject("Msxml3.XMLHTTP")},
+		    function () {return new ActiveXObject("Microsoft.XMLHTTP")}
+		];
+		
+		function createXMLHTTPObject() {
+		    var xmlhttp = false;
+		    for (var i=0;i<XMLHttpFactories.length;i++) {
+		        try {
+		            xmlhttp = XMLHttpFactories[i]();
+		        }
+		        catch (e) {
+		            continue;
+		        }
+		        break;
+		    }
+		    return xmlhttp;
+		}
+		
+	
+	    var req = createXMLHTTPObject();
+	    if (!req) return;
+	    var method = (postData) ? "POST" : "GET";
+	    req.open(method,url,true);
+	    req.setRequestHeader('User-Agent','XMLHTTP/1.0');
+	    if (postData)
+	        req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+	    req.onreadystatechange = function () {
+	        if (req.readyState != 4) return;
+	        if (req.status != 200 && req.status != 304) {
+			//          alert('HTTP error ' + req.status);
+	            return;
+	        }
+	        callback(req);
+	    }
+	    if (req.readyState == 4) return;
+	    req.send(postData);
 	}
-};
+	
 
+};
 
 
 
