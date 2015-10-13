@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.1.2
+* @version 0.1.3
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -51,7 +51,9 @@ function cPager(param) {
 		displayStyle: 'block',
 		offButton: 'pageBtnOffline',
 		container: 'page',
-		start: false
+		start: false,
+		startTask: false,
+		startContent: false
 	}
 	
 	if (param) {
@@ -81,7 +83,7 @@ function cPager(param) {
 		this.switch(this._lastopen);
 	} else {
 		if (this._opt.start) {
-			this.switch(this._opt.start);
+			this.switch(this._opt.start,this._opt.startTask, this._opt.startContent);
 		}
 	}
 	
