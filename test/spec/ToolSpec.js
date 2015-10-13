@@ -542,7 +542,7 @@ describe("cPager", function() {
 			
 			
 			
-			//console.log('-before');
+			console.log('-before');
 			
 			var newDiv = document.createElement("div"); 
 			newDiv.id = pageId;
@@ -551,7 +551,14 @@ describe("cPager", function() {
 			
 			
 			myPager = new cPager({
-				start: 'home'
+				start: 'home',
+				tasks: {
+					'test': function (pageId, pageContent, event, dom) {
+						return function () {
+							//console.log('----------',pageId, pageContent, event, dom, this);
+						}
+					}
+				}
 			});
 			
 			
@@ -572,15 +579,7 @@ describe("cPager", function() {
 		
 
 		
-		it("switch() should set default ajax url  ", function() {
 		
-			//console.log('----hier');
-			
-			myPager.switch('home');
-
-			expect(jasmine.Ajax.requests.mostRecent().url).toBe('tmpl/home.tpl');
-					
-		});
 		
 		
 		it("switch() should set ajax url  ", function() {
@@ -595,7 +594,7 @@ describe("cPager", function() {
 		
 		
 		
-		
+
 
 		
 		

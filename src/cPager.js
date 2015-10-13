@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.1.0
+* @version 0.1.1
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -71,6 +71,8 @@ function cPager(param) {
 		throw new Error("missing main container #"+this._opt.container);
 		return false
 	}
+	
+	this.ajaxCache = {};
 	
 	
 	// START
@@ -329,16 +331,19 @@ cPager.prototype._h = {
 	},
 	ajax: function (that, path, pageId, pageTask, pageContent ) {
 
-		//console.log('ajax');
-
 		var thatAjax = this;
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", path, true);
-		xhr.onreadystatechange = function () {
-		  if (xhr.readyState != 4 || xhr.status != 200) return;
-		  thatAjax.ajaxSuccess(xhr.responseText, pageId, pageTask, pageContent, that);
-		};
-		xhr.send();
+		if ( that.ajaxCache[path] ) {
+			thatAjax.ajaxSuccess(that.ajaxCache[path], pageId, pageTask, pageContent, that);
+		} else {
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", path, true);
+			xhr.onreadystatechange = function () {
+			  if (xhr.readyState != 4 || xhr.status != 200) return;
+			  that.ajaxCache[path] = xhr.responseText;
+			  thatAjax.ajaxSuccess(xhr.responseText, pageId, pageTask, pageContent, that);
+			};
+			xhr.send();
+		}		
 	},
 	switchDom : function (that, pageId, pageTask, pageContent) {
 		
