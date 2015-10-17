@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Example</title>
+
+
+  <!-- include source files here... -->
+  <script src="../src/cPager.js"></script>
+  
+	
+
+</head>
+
+<body>
+	
+	<div id="page"></div>
+	
+	
+	<script>
+		
+		var myPager = new cPager({
+			container: 'page',
+			start: 'home',
+			tasks: {
+				'myTask': function () {
+					
+					alert('myTask before');
+				
+					return function () {
+						
+						alert('myTask after');
+						
+					};
+					
+				}
+			},
+			preCache: ['home','page','page1','test/home']
+		});
+		
+		console.log(myPager);
+		
+			  
+	</script>
+	
+	
+</body>
+</html>

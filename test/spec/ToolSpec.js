@@ -503,6 +503,7 @@ describe("cPager", function() {
 		});
 		
 		
+/*
 		
 		it("switch() should set response if task is true ", function() {
 		
@@ -519,6 +520,7 @@ describe("cPager", function() {
 		});
 		
 		
+*/
 
 
 		
@@ -588,7 +590,7 @@ describe("cPager", function() {
 			
 			myPager.switch('meinTest');
 
-			expect(jasmine.Ajax.requests.mostRecent().url).toBe('tmpl/meinTest.tpl');
+			expect(jasmine.Ajax.requests.mostRecent().url).toBe('./tmpl/meinTest.tpl');
 					
 		});
 		
