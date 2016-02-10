@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.1.6
+* @version 0.2.0
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -43,19 +43,18 @@ function cPager(param) {
 	this._page;
 	this._open = 0;
 	this._lastopen = 0;
-	this._history = []
+	this._history = [];
 
 	this._opt = {
 		handler: 'pageBtn',
 		tmplPath: 'tmpl',
-		displayStyle: 'block',
 		offButton: 'pageBtnOffline',
 		container: 'page',
 		start: false,
 		startTask: false,
 		startContent: false,
 		preCache: []
-	}
+	};
 
 	if (param) {
 		for (var i in param) {
@@ -82,7 +81,7 @@ function cPager(param) {
 	this._page = document.getElementById(this._opt.container);
 	if (!this._page) {
 		throw new Error("missing main container #"+this._opt.container);
-		return false
+		return false;
 	}
 
 	// START
@@ -194,7 +193,10 @@ cPager.prototype.events = function () {
 		var pageId = this.getAttribute('data-page'),
 			pageTask = this.getAttribute('data-task'),
 			pageContent = this.getAttribute('data-content'),
-      pageContainer = this.getAttribute('data-container') || false;
+      pageContainer = this.getAttribute('data-container') || false,
+      pageAnimate = this.getAttribute('data-animate') || false,
+      pageDuration = this.getAttribute('data-duration') || false,
+      pageDirection = this.getAttribute('data-direction') || false;
 
 		//console.log('clickHandler', pageId, pageTask, pageContent);
 
@@ -204,11 +206,14 @@ cPager.prototype.events = function () {
 			}
 			//console.log('- do click');
       var param = {
-				event: e
+				event: e,
+				animate: pageAnimate,
+				duration: pageDuration,
+				direction: pageDirection
 			};
       if (pageContainer) {
         param.container = pageContainer;
-      };
+      }
 			that.switch(pageId, pageTask, pageContent, param);
 		}
 	};
@@ -308,7 +313,7 @@ cPager.prototype.addHistory = function (pageId, pageTask, pageContent) {
 
 
 /**
-* Add task functions scops
+* Add task functions scopes
 *
 * ### Examples:
 *
@@ -341,7 +346,7 @@ cPager.prototype.addTask = function (key, obj) {
 		return false;
 	}
 
-	if (!this._opt.tasks[key] || typeof this._opt.tasks[key] !== 'object') {
+	if (!this._opt.tasks[key] || typeof this._opt.tasks[key] !== 'object') {
 		this._opt.tasks[key] = {};
 	}
 
@@ -382,11 +387,13 @@ cPager.prototype._h = {
 			if (t.length > 0) {
 				if ( t[0] && t[1] && that._opt.tasks[t[0]] && that._opt.tasks[t[0]][t[1]] ) {
 					var func = that._opt.tasks[t[0]][t[1]];
+					var scope = that._opt.tasks[t[0]];
 				} else if ( t[0] && that._opt.tasks[t[0]] ) {
 					var func = that._opt.tasks[t[0]];
+					var scope = that._opt.tasks;
 				}
 				if (func && typeof func === 'function') {
-					return func(pageId,content,e,that._page);
+					return func(pageId,content,e,that._page,scope);
 				}
 			}
 		}
@@ -394,33 +401,106 @@ cPager.prototype._h = {
 	},
 	switchSuccess: function (that, pageId, pageTask, pageContent) {
 
-		//console.log(that.switch.task);
-		//console.log('switchDom ajaxSuccess');
-
 		if (typeof that.switch.task === "function") {
-			that.switch.task();
+			that.switch.afterAnimate = that.switch.task();
 		}
 		that.events();
 		that.addHistory(pageId, pageTask, pageContent);
 	},
+	animateSuccess: function (that) {
+
+		if (typeof that.switch.afterAnimate === "function") {
+			that.switch.afterAnimate();
+		}
+
+	},
 	ajaxSuccess: function (response, pageId, pageTask, pageContent, that, param) {
 
-		//console.log('ajaxSuccess',response);
-
-		this.switchDom.response = response;
+		var temp_page = that._page;
 
     if (param && param.container) {
-      var temp_page = document.getElementById(param.container);
+       temp_page = document.getElementById(param.container);
 
     	if (!temp_page) {
     		throw new Error("missing container #"+this._opt.container);
-    		return false
+    		return false;
     	}
-
-      temp_page.innerHTML = response;
-    } else {
-      that._page.innerHTML = response;
     }
+
+		if (param && param.animate) {
+
+			var box = document.createElement('div');
+			box.id = that._opt.container;
+			box.innerHTML = response;
+			box.style.position = 'absolute';
+			document.body.insertBefore(box, temp_page.nextSibling);
+
+			temp_page.id = that._opt.container+'Temp';
+			temp_page.style.width = box.clientWidth+'px';
+			temp_page.style.height = box.clientHeight+'px';
+			temp_page.style.position = 'absolute';
+
+			var delta = that._h.easingFunctions[param.animate],
+				dir = false,
+				move = false;
+
+			if (!delta) {
+				delta = that._h.easingFunctions.linear;
+			}
+
+			if (param.direction == 'right') {
+				box.style.left = (temp_page.offsetWidth * (-1) )+'px';
+				box.style.top = temp_page.offsetTop+'px';
+				move = [temp_page.offsetWidth * (-1), parseInt(temp_page.offsetLeft), parseInt(temp_page.offsetLeft), temp_page.offsetWidth];
+
+			} else if (param.direction == 'top') {
+				box.style.left = temp_page.offsetLeft+'px';
+				box.style.top = temp_page.offsetHeight+'px';
+				move = [parseInt(box.style.top), parseInt(temp_page.offsetTop), parseInt(temp_page.offsetTop), temp_page.offsetHeight * (-1)];
+				dir = true;
+
+			} else if (param.direction == 'bottom') {
+				box.style.left = temp_page.offsetLeft+'px';
+				box.style.top = '-'+temp_page.offsetHeight+'px';
+				move = [parseInt(box.style.top), parseInt(temp_page.offsetTop), parseInt(temp_page.offsetTop), temp_page.offsetHeight];
+				dir = true;
+
+			} else {
+				box.style.left = temp_page.offsetWidth+'px';
+				box.style.top = temp_page.offsetTop+'px';
+				move = [parseInt(box.style.left), parseInt(temp_page.offsetLeft), parseInt(temp_page.offsetLeft), temp_page.offsetWidth * (-1)];
+			}
+
+			if (!move) {
+				return false;
+			}
+
+			move[4] = move[1] - move[0];
+			move[5] = move[3] - move[2];
+
+		  that._h.animate({
+		    delay: 10,
+		    duration: param.duration || 600,
+		    delta: delta,
+		    step: function(delta) {
+					if (dir) {
+						box.style.top = (( move[4] * delta ) + move[0]) + 'px';
+						temp_page.style.top = (( move[5] * delta ) + move[2]) + 'px';
+					} else {
+						box.style.left = (( move[4] * delta ) + move[0]) + 'px';
+						temp_page.style.left = (( move[5] * delta ) + move[2]) + 'px';
+					}
+		    },
+				end: function () {
+					temp_page.remove();
+					that._page = box;
+					that._h.animateSuccess(that);
+				}
+		  });
+
+    } else { // no animation
+			temp_page.innerHTML = response;
+		}
 
 		that._lastopen = that._open;
 		that._open = pageId;
@@ -452,7 +532,6 @@ cPager.prototype._h = {
 	},
 	switchDom : function (that, pageId, pageTask, pageContent, param) {
 
-		//console.log('switchDom', pageId);
 		if (pageId) {
 			this.ajax( that, './'+that._opt.tmplPath+'/'+pageId+'.tpl', pageId, pageTask, pageContent, param);
 		}
@@ -461,10 +540,10 @@ cPager.prototype._h = {
 	sendRequest: function (url,callback,postData) {
 
 		var XMLHttpFactories = [
-		    function () {return new XMLHttpRequest()},
-		    function () {return new ActiveXObject("Msxml2.XMLHTTP")},
-		    function () {return new ActiveXObject("Msxml3.XMLHTTP")},
-		    function () {return new ActiveXObject("Microsoft.XMLHTTP")}
+		    function () {return new XMLHttpRequest();},
+		    function () {return new ActiveXObject("Msxml2.XMLHTTP");},
+		    function () {return new ActiveXObject("Msxml3.XMLHTTP");},
+		    function () {return new ActiveXObject("Microsoft.XMLHTTP");}
 		];
 
 		function createXMLHTTPObject() {
@@ -514,6 +593,58 @@ cPager.prototype._h = {
 
 	    // Fire the loading
 	    head.appendChild(script);
+	},
+	animate: function(opts) {
+
+		if ( !opts.delay || !opts.duration || !opts.delta || !opts.step ) {
+			return false;
+		}
+	  var start = new Date;
+	  var id = setInterval(function() {
+	    var timePassed = new Date - start;
+	    var progress = timePassed / opts.duration;
+
+	    if (progress > 1) progress = 1;
+
+	    var delta = opts.delta(progress);
+	    opts.step(delta);
+
+	    if (progress == 1) {
+	      clearInterval(id);
+				if (opts.end) {
+					opts.end();
+				}
+	    }
+	  }, opts.delay || 10);
+
+	},
+	easingFunctions: {
+	  // no easing, no acceleration
+	  linear: function (t) { return t },
+	  // accelerating from zero velocity
+	  easeInQuad: function (t) { return t*t },
+	  // decelerating to zero velocity
+	  easeOutQuad: function (t) { return t*(2-t) },
+	  // acceleration until halfway, then deceleration
+	  easeInOutQuad: function (t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t },
+	  // accelerating from zero velocity
+	  easeInCubic: function (t) { return t*t*t },
+	  // decelerating to zero velocity
+	  easeOutCubic: function (t) { return (--t)*t*t+1 },
+	  // acceleration until halfway, then deceleration
+	  easeInOutCubic: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+	  // accelerating from zero velocity
+	  easeInQuart: function (t) { return t*t*t*t },
+	  // decelerating to zero velocity
+	  easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+	  // acceleration until halfway, then deceleration
+	  easeInOutQuart: function (t) { return t<0.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+	  // accelerating from zero velocity
+	  easeInQuint: function (t) { return t*t*t*t*t },
+	  // decelerating to zero velocity
+	  easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+	  // acceleration until halfway, then deceleration
+	  easeInOutQuint: function (t) { return t<0.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
 	}
 
 

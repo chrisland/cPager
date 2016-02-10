@@ -8,6 +8,21 @@
   <!-- include source files here... -->
   <script src="../src/cPager.js"></script>
 
+  <style>
+
+    html, body {
+      height: 100%;
+    }
+
+    #page {
+      width: 60vw;
+      height: 60vh;
+      border: 1px solid #ccc;
+    }
+    #pageTemp {
+      border: 1px solid red;
+    }
+  </style>
 </head>
 
 <body>
@@ -21,8 +36,8 @@
 			start: 'home',
       controller: ['addtask_home','addtask_user'],
       tasks: {
-        myTask: function () {
-          console.log('---> myTask');
+        myTask: function (a,b,c,d,e) {
+          console.log('---> myTask',a,b,c,d,e);
           return true;
         }
       }
