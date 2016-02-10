@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.1.5
+* @version 0.1.6
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -65,25 +65,27 @@ function cPager(param) {
 		}
 	}
 
-
-	// INIT
-
-	this._page = document.getElementById(this._opt.container);
-
-	if (!this._page) {
-		throw new Error("missing main container #"+this._opt.container);
-		return false
+	// LOAD EXTERNAL JS TASK FILES
+	if (this._opt.controller.length > 0) {
+		for (var i = 0; i < this._opt.controller.length; i++) {
+			this._h.loadScript(this._opt.controller[i]);
+		}
 	}
 
+	// LOAD AJAX TPL PAGES
 	this.ajaxCache = {};
 	if (this._opt.preCache.length > 0) {
 		this._h.cache(this, this._opt.preCache);
 	}
 
-
+	// INIT
+	this._page = document.getElementById(this._opt.container);
+	if (!this._page) {
+		throw new Error("missing main container #"+this._opt.container);
+		return false
+	}
 
 	// START
-
 	if ( this._lastopen ) {
 		this.switch(this._lastopen);
 	} else {
@@ -91,7 +93,6 @@ function cPager(param) {
 			this.switch(this._opt.start,this._opt.startTask, this._opt.startContent);
 		}
 	}
-
 
 	return this;
 }
@@ -302,6 +303,62 @@ cPager.prototype.addHistory = function (pageId, pageTask, pageContent) {
 	return false;
 };
 
+
+
+
+
+/**
+* Add task functions scops
+*
+* ### Examples:
+*
+*	var myPager = new cPager()
+*
+*	myPager.addTask('scopeName', {
+*		func1: function () {
+*			console.log('---> func1');
+* 		return true;
+*		},
+*		func2: function () {
+*			console.log('---> func2');
+* 		return function () {};
+*		}
+*	});
+*
+*
+* @function addTask
+* @version 0.1.6
+*
+* @return {Boolean} true
+*
+* @api public
+*/
+
+
+cPager.prototype.addTask = function (key, obj) {
+
+	if (!key || typeof key !== 'string' || !obj || typeof obj !== 'object') {
+		return false;
+	}
+
+	if (!this._opt.tasks[key] || typeof this._opt.tasks[key] !== 'object') {
+		this._opt.tasks[key] = {};
+	}
+
+	for (var prop in obj) {
+		if (obj.hasOwnProperty(prop)) {
+			this._opt.tasks[key][prop] = obj[prop];
+		}
+  }
+
+	return true;
+};
+
+
+
+
+
+
 cPager.prototype._h = {
 
 	changeContent : function (e, task, content, pageId, that) {
@@ -320,8 +377,18 @@ cPager.prototype._h = {
 			}
 			return true;
 
-		} else if (that._opt.tasks && that._opt.tasks[task]) {
-			return that._opt.tasks[task](pageId,content,e,that._page);
+		} else if (that._opt.tasks && task) {
+			var t = task.split('.');
+			if (t.length > 0) {
+				if ( t[0] && t[1] && that._opt.tasks[t[0]] && that._opt.tasks[t[0]][t[1]] ) {
+					var func = that._opt.tasks[t[0]][t[1]];
+				} else if ( t[0] && that._opt.tasks[t[0]] ) {
+					var func = that._opt.tasks[t[0]];
+				}
+				if (func && typeof func === 'function') {
+					return func(pageId,content,e,that._page);
+				}
+			}
 		}
 		return true;
 	},
@@ -432,6 +499,21 @@ cPager.prototype._h = {
 	    }
 	    if (req.readyState == 4) return;
 	    req.send(postData);
+	},
+	loadScript: function(url, callback) {
+	    // Adding the script tag to the head as suggested before
+	    var head = document.getElementsByTagName('head')[0];
+	    var script = document.createElement('script');
+	    script.type = 'text/javascript';
+	    script.src = url+'.js';
+
+	    // Then bind the event to the callback function.
+	    // There are several events for cross browser compatibility.
+	    script.onreadystatechange = callback;
+	    script.onload = callback;
+
+	    // Fire the loading
+	    head.appendChild(script);
 	}
 
 
