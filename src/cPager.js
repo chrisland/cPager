@@ -179,7 +179,7 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 */
 
 
-cPager.prototype.events = function () {
+cPager.prototype.events = function (forced) {
 
 	//console.log('events');
 
@@ -221,7 +221,11 @@ cPager.prototype.events = function () {
 	var pageBtns = document.getElementsByClassName(this._opt.handler);
 	for(var i = 0; i < pageBtns.length; i++) {
 		pageBtns[i].style.curser = 'pointer';  // IOS BUG
-		pageBtns[i].addEventListener('click',clickHandler);
+		//pageBtns[i].addEventListener('click',clickHandler);
+		if (!pageBtns[i].onclick || forced) {
+			pageBtns[i].onclick = clickHandler;
+		}
+
 	}
 	return true;
 };
