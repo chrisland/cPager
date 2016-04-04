@@ -1,8 +1,10 @@
+"use strict";
+
 /**
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.0
+* @version 0.2.1
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -65,7 +67,7 @@ function cPager(param) {
 	}
 
 	// LOAD EXTERNAL JS TASK FILES
-	if (this._opt.controller.length > 0) {
+	if (this._opt.controller && this._opt.controller.length > 0) {
 		for (var i = 0; i < this._opt.controller.length; i++) {
 			this._h.loadScript(this._opt.controller[i]);
 		}
@@ -179,7 +181,7 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 */
 
 
-cPager.prototype.events = function (forced) {
+cPager.prototype.events = function () {
 
 	//console.log('events');
 
@@ -193,27 +195,33 @@ cPager.prototype.events = function (forced) {
 		var pageId = this.getAttribute('data-page'),
 			pageTask = this.getAttribute('data-task'),
 			pageContent = this.getAttribute('data-content'),
-      pageContainer = this.getAttribute('data-container') || false,
-      pageAnimate = this.getAttribute('data-animate') || false,
-      pageDuration = this.getAttribute('data-duration') || false,
-      pageDirection = this.getAttribute('data-direction') || false;
+			pageContainer = this.getAttribute('data-container') || false,
+			pageAnimate = this.getAttribute('data-animate') || false,
+			pageDuration = this.getAttribute('data-duration') || false,
+			pageDirection = this.getAttribute('data-direction') || false,
+			pageForce = this.getAttribute('data-force') || false;
 
 		//console.log('clickHandler', pageId, pageTask, pageContent);
 
 		if ( pageId || pageTask ) {
-			if (that._open == pageId) {
+			if (that._open == pageId && !pageForce) {
 				return false;
 			}
 			//console.log('- do click');
-      var param = {
+      		var param = {
 				event: e,
 				animate: pageAnimate,
 				duration: pageDuration,
 				direction: pageDirection
 			};
-      if (pageContainer) {
-        param.container = pageContainer;
-      }
+			if (pageContainer) {
+				param.container = pageContainer;
+			}
+			// console.log(pageId);
+			// console.log(pageTask);
+			// console.log(pageContent);
+			// console.log(param);
+
 			that.switch(pageId, pageTask, pageContent, param);
 		}
 	};
@@ -222,7 +230,7 @@ cPager.prototype.events = function (forced) {
 	for(var i = 0; i < pageBtns.length; i++) {
 		pageBtns[i].style.curser = 'pointer';  // IOS BUG
 		//pageBtns[i].addEventListener('click',clickHandler);
-		if (!pageBtns[i].onclick || forced) {
+		if (!pageBtns[i].onclick) {
 			pageBtns[i].onclick = clickHandler;
 		}
 
@@ -373,7 +381,7 @@ cPager.prototype._h = {
 	changeContent : function (e, task, content, pageId, that) {
 
 		//console.log('changeContent', e, task, content, pageId);
-		//console.log(that._opt.tasks);
+		//console.log(content);
 
 		if (task == 'back') {
 			var anz = 2;
@@ -388,14 +396,19 @@ cPager.prototype._h = {
 
 		} else if (that._opt.tasks && task) {
 			var t = task.split('.');
+			//console.log(task);
+			//console.log(t);
 			if (t.length > 0) {
 				if ( t[0] && t[1] && that._opt.tasks[t[0]] && that._opt.tasks[t[0]][t[1]] ) {
+					//console.log('deep');
 					var func = that._opt.tasks[t[0]][t[1]];
 					var scope = that._opt.tasks[t[0]];
 				} else if ( t[0] && that._opt.tasks[t[0]] ) {
 					var func = that._opt.tasks[t[0]];
 					var scope = that._opt.tasks;
 				}
+				//console.log(that._opt.tasks);
+				//console.log(func);
 				if (func && typeof func === 'function') {
 					return func(pageId,content,e,that._page,scope);
 				}
@@ -422,14 +435,14 @@ cPager.prototype._h = {
 
 		var temp_page = that._page;
 
-    if (param && param.container) {
-       temp_page = document.getElementById(param.container);
+	    if (param && param.container) {
+	       temp_page = document.getElementById(param.container);
 
-    	if (!temp_page) {
-    		throw new Error("missing container #"+this._opt.container);
-    		return false;
-    	}
-    }
+	    	if (!temp_page) {
+	    		throw new Error("missing container #"+this._opt.container);
+	    		return false;
+	    	}
+	    }
 
 		if (param && param.animate) {
 
@@ -502,7 +515,7 @@ cPager.prototype._h = {
 				}
 		  });
 
-    } else { // no animation
+    	} else { // no animation
 			temp_page.innerHTML = response;
 		}
 
