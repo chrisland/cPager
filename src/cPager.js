@@ -1,10 +1,10 @@
-"use strict";
+
 
 /**
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.1
+* @version 0.2.2
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -41,6 +41,8 @@
 
 
 function cPager(param) {
+
+	"use strict";
 
 	this._page;
 	this._open = 0;
@@ -143,6 +145,9 @@ function cPager(param) {
 
 cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 
+	//console.log('this.switch.task - '+pageId+' - '+pageTask+' - '+pageContent);
+
+
 	//console.log(this.get());
 	//console.log('switch', pageId, pageTask, pageContent);
 	var event = null;
@@ -151,9 +156,13 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 	}
 	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this);
 
+	//console.log(this.switch.task);
+
 	if (this.switch.task) {
 		this._h.switchDom(this, pageId, pageTask, pageContent, param);
 	}
+
+	//console.log('----------------------------------');
 	return this;
 };
 
@@ -416,10 +425,10 @@ cPager.prototype._h = {
 		}
 		return true;
 	},
-	switchSuccess: function (that, pageId, pageTask, pageContent) {
+	switchSuccess: function (that, pageId, pageTask, pageContent, dom) {
 
 		if (typeof that.switch.task === "function") {
-			that.switch.afterAnimate = that.switch.task();
+			that.switch.afterAnimate = that.switch.task(dom || that._page)
 		}
 		that.events();
 		that.addHistory(pageId, pageTask, pageContent);
@@ -495,25 +504,25 @@ cPager.prototype._h = {
 			move[4] = move[1] - move[0];
 			move[5] = move[3] - move[2];
 
-		  that._h.animate({
-		    delay: 10,
-		    duration: param.duration || 600,
-		    delta: delta,
-		    step: function(delta) {
-					if (dir) {
-						box.style.top = (( move[4] * delta ) + move[0]) + 'px';
-						temp_page.style.top = (( move[5] * delta ) + move[2]) + 'px';
-					} else {
-						box.style.left = (( move[4] * delta ) + move[0]) + 'px';
-						temp_page.style.left = (( move[5] * delta ) + move[2]) + 'px';
+			  that._h.animate({
+			    delay: 10,
+			    duration: param.duration || 600,
+			    delta: delta,
+			    step: function(delta) {
+						if (dir) {
+							box.style.top = (( move[4] * delta ) + move[0]) + 'px';
+							temp_page.style.top = (( move[5] * delta ) + move[2]) + 'px';
+						} else {
+							box.style.left = (( move[4] * delta ) + move[0]) + 'px';
+							temp_page.style.left = (( move[5] * delta ) + move[2]) + 'px';
+						}
+			    },
+					end: function () {
+						temp_page.remove();
+						that._page = box;
+						that._h.animateSuccess(that);
 					}
-		    },
-				end: function () {
-					temp_page.remove();
-					that._page = box;
-					that._h.animateSuccess(that);
-				}
-		  });
+			  });
 
     	} else { // no animation
 			temp_page.innerHTML = response;
@@ -521,7 +530,7 @@ cPager.prototype._h = {
 
 		that._lastopen = that._open;
 		that._open = pageId;
-		this.switchSuccess(that, pageId, pageTask, pageContent);
+		this.switchSuccess(that, pageId, pageTask, pageContent, box || that._page);
 	},
 	ajax: function (that, path, pageId, pageTask, pageContent, param ) {
 
