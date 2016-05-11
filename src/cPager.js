@@ -4,7 +4,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.2
+* @version 0.2.5
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -48,6 +48,7 @@ function cPager(param) {
 	this._open = 0;
 	this._lastopen = 0;
 	this._history = [];
+	this._pageClass = '';
 
 	this._opt = {
 		handler: 'pageBtn',
@@ -87,6 +88,7 @@ function cPager(param) {
 		throw new Error("missing main container #"+this._opt.container);
 		return false;
 	}
+	this._pageClass = this._page.className || '';
 
 	// START
 	if ( this._lastopen ) {
@@ -156,11 +158,13 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 	}
 	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this);
 
+
 	//console.log(this.switch.task);
 
 	if (this.switch.task) {
 		this._h.switchDom(this, pageId, pageTask, pageContent, param);
 	}
+
 
 	//console.log('----------------------------------');
 	return this;
@@ -452,11 +456,16 @@ cPager.prototype._h = {
 	    		return false;
 	    	}
 	    }
-
 		if (param && param.animate) {
 
 			var box = document.createElement('div');
 			box.id = that._opt.container;
+			box.className = that._pageClass || '';
+			if (box.className) {
+				box.className += ' ';
+			}
+			box.className += 'cPager-'+pageId.replace(/\//ig, '-');
+
 			box.innerHTML = response;
 			box.style.position = 'absolute';
 			document.body.insertBefore(box, temp_page.nextSibling);
@@ -465,6 +474,9 @@ cPager.prototype._h = {
 			temp_page.style.width = box.clientWidth+'px';
 			temp_page.style.height = box.clientHeight+'px';
 			temp_page.style.position = 'absolute';
+
+			box.style.width = box.clientWidth+'px';
+			box.style.height = box.clientHeight+'px';
 
 			var delta = that._h.easingFunctions[param.animate],
 				dir = false,
@@ -505,8 +517,8 @@ cPager.prototype._h = {
 			move[5] = move[3] - move[2];
 
 			  that._h.animate({
-			    delay: 10,
-			    duration: param.duration || 600,
+			    delay: 1,
+			    duration: param.duration || 400,
 			    delta: delta,
 			    step: function(delta) {
 						if (dir) {
@@ -526,11 +538,14 @@ cPager.prototype._h = {
 
     	} else { // no animation
 			temp_page.innerHTML = response;
+			temp_page.className = that._pageClass || '';
+			temp_page.className += 'cPager-'+pageId.replace(/\//ig, '-');
+			box = that._page;
 		}
 
 		that._lastopen = that._open;
 		that._open = pageId;
-		this.switchSuccess(that, pageId, pageTask, pageContent, box || that._page);
+		this.switchSuccess(that, pageId, pageTask, pageContent, box);
 	},
 	ajax: function (that, path, pageId, pageTask, pageContent, param ) {
 
@@ -539,8 +554,8 @@ cPager.prototype._h = {
 			thatAjax.ajaxSuccess(that.ajaxCache[path], pageId, pageTask, pageContent, that, param);
 		} else {
 			this.sendRequest(path,function (req) {
-				that.ajaxCache[path] = req.responseText;
-				thatAjax.ajaxSuccess(req.responseText, pageId, pageTask, pageContent, that, param);
+				that.ajaxCache[path] = req;
+				thatAjax.ajaxSuccess(req, pageId, pageTask, pageContent, that, param);
 			});
 		}
 	},
@@ -551,7 +566,7 @@ cPager.prototype._h = {
 			//console.log(path);
 			this.sendRequest(path,function (req, url) {
 				//console.log(req.responseText);
-				that.ajaxCache[url] = req.responseText;
+				that.ajaxCache[url] = req;
 				//console.log(url, that.ajaxCache);
 			});
 		}
@@ -590,20 +605,24 @@ cPager.prototype._h = {
 	    var req = createXMLHTTPObject();
 	    if (!req) return;
 	    var method = (postData) ? "POST" : "GET";
-	    req.open(method,url,true);
+	    req.open(method,'file://'+url,true);
 	    req.setRequestHeader('User-Agent','XMLHTTP/1.0');
 	    if (postData)
 	        req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
 	    req.onreadystatechange = function () {
 	        if (req.readyState != 4) return;
 	        if (req.status != 200 && req.status != 304) {
-			//          alert('HTTP error ' + req.status);
+			          alert('HTTP error ' + req.status);
 	            return;
 	        }
-	        callback(req, url);
+					//console.log(req);
+					//console.log(method, url);
+	        callback(req.responseText, url);
 	    }
+
 	    if (req.readyState == 4) return;
 	    req.send(postData);
+
 	},
 	loadScript: function(url, callback) {
 	    // Adding the script tag to the head as suggested before
