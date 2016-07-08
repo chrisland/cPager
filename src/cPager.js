@@ -4,7 +4,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.6
+* @version 0.2.7
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -49,6 +49,7 @@ function cPager(param) {
 	this._lastopen = 0;
 	this._history = [];
 	this._pageClass = '';
+	this._bodyClass = '';
 
 	this._opt = {
 		handler: 'pageBtn',
@@ -90,6 +91,7 @@ function cPager(param) {
 		return false;
 	}
 	this._pageClass = this._page.className || '';
+	this._bodyClass = document.body.className || '';
 
 	// START
 	if ( this._lastopen ) {
@@ -452,32 +454,30 @@ cPager.prototype._h = {
 
 		var temp_page = that._page;
 
-	    if (param && param.container) {
-	       temp_page = document.getElementById(param.container);
+    if (param && param.container) {
+       temp_page = document.getElementById(param.container);
 
-	    	if (!temp_page) {
-	    		throw new Error("missing container #"+this._opt.container);
-	    		return false;
-	    	}
-	    }
+    	if (!temp_page) {
+    		throw new Error("missing container #"+this._opt.container);
+    		return false;
+    	}
+    }
+		var newClass = pageId.replace(/\//ig, '-');
 		if (param && param.animate) {
 
 			var box = document.createElement('div');
 			box.id = that._opt.container;
-			box.className = that._pageClass || '';
-			if (box.className) {
-				box.className += ' ';
-			}
-			box.className += 'cPager-'+pageId.replace(/\//ig, '-');
+			box.className = that._pageClass+' ' || '';
+			box.className += 'cPager-'+newClass;
 
 			box.innerHTML = response;
-			box.style.position = 'absolute';
+			box.style.position = 'relative';
 			document.body.insertBefore(box, temp_page.nextSibling);
 
 			temp_page.id = that._opt.container+'Temp';
 			temp_page.style.width = box.clientWidth+'px';
 			temp_page.style.height = box.clientHeight+'px';
-			temp_page.style.position = 'absolute';
+			temp_page.style.position = 'relative';
 
 			box.style.width = box.clientWidth+'px';
 			box.style.height = box.clientHeight+'px';
@@ -542,10 +542,14 @@ cPager.prototype._h = {
 
     	} else { // no animation
 			temp_page.innerHTML = response;
-			temp_page.className = that._pageClass || '';
-			temp_page.className += 'cPager-'+pageId.replace(/\//ig, '-');
+			temp_page.className = that._pageClass+' ' || '';
+			temp_page.className += 'cPager-'+newClass;
 			box = that._page;
 		}
+
+		document.body.className = that._bodyClass+' ' || '';
+		document.body.className+= 'cPager-body-'+newClass;
+
 
 		that._lastopen = that._open;
 		that._open = pageId;
