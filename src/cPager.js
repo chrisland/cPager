@@ -4,7 +4,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.5
+* @version 0.2.6
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -58,6 +58,7 @@ function cPager(param) {
 		start: false,
 		startTask: false,
 		startContent: false,
+		startParam: {history: true},
 		preCache: []
 	};
 
@@ -95,7 +96,7 @@ function cPager(param) {
 		this.switch(this._lastopen);
 	} else {
 		if (this._opt.start) {
-			this.switch(this._opt.start,this._opt.startTask, this._opt.startContent);
+			this.switch(this._opt.start,this._opt.startTask, this._opt.startContent, this._opt.startParam);
 		}
 	}
 
@@ -158,9 +159,6 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 	}
 	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this);
 
-
-	//console.log(this.switch.task);
-
 	if (this.switch.task) {
 		this._h.switchDom(this, pageId, pageTask, pageContent, param);
 	}
@@ -212,7 +210,8 @@ cPager.prototype.events = function () {
 			pageAnimate = this.getAttribute('data-animate') || false,
 			pageDuration = this.getAttribute('data-duration') || false,
 			pageDirection = this.getAttribute('data-direction') || false,
-			pageForce = this.getAttribute('data-force') || false;
+			pageForce = this.getAttribute('data-force') || false,
+			history = this.getAttribute('data-history') || true;
 
 		//console.log('clickHandler', pageId, pageTask, pageContent);
 
@@ -221,8 +220,9 @@ cPager.prototype.events = function () {
 				return false;
 			}
 			//console.log('- do click');
-      		var param = {
+      var param = {
 				event: e,
+				history: history,
 				animate: pageAnimate,
 				duration: pageDuration,
 				direction: pageDirection
@@ -319,13 +319,14 @@ cPager.prototype.removeHistory = function (anz) {
 
 
 
-cPager.prototype.addHistory = function (pageId, pageTask, pageContent) {
+cPager.prototype.addHistory = function (pageId, pageTask, pageContent, pageParam) {
 
 	if (pageId) {
 		var obj = {
 			id: pageId,
 			task: pageTask,
-			content: pageContent
+			content: pageContent,
+			param: pageParam
 		};
 		this._history.push(obj);
 		return true;
@@ -393,7 +394,7 @@ cPager.prototype._h = {
 
 	changeContent : function (e, task, content, pageId, that) {
 
-		//console.log('changeContent', e, task, content, pageId);
+		//console.log(['changeContent', e, task, content, pageId]);
 		//console.log(content);
 
 		if (task == 'back') {
@@ -402,7 +403,7 @@ cPager.prototype._h = {
 			var last = history[history.length -anz];
 			if (!last) { return false; }
 			if (last.id) {
-				that.switch(last.id,last.task,last.content);
+				that.switch(last.id,last.task,last.content, last.param);
 				that.removeHistory(anz);
 			}
 			return true;
@@ -429,13 +430,16 @@ cPager.prototype._h = {
 		}
 		return true;
 	},
-	switchSuccess: function (that, pageId, pageTask, pageContent, dom) {
+	switchSuccess: function (that, pageId, pageTask, pageContent, param, dom) {
 
 		if (typeof that.switch.task === "function") {
 			that.switch.afterAnimate = that.switch.task(dom || that._page)
 		}
 		that.events();
-		that.addHistory(pageId, pageTask, pageContent);
+		if ( String(param.history) != 'false') {
+			that.addHistory(pageId, pageTask, pageContent, param);
+		}
+
 	},
 	animateSuccess: function (that) {
 
@@ -545,7 +549,7 @@ cPager.prototype._h = {
 
 		that._lastopen = that._open;
 		that._open = pageId;
-		this.switchSuccess(that, pageId, pageTask, pageContent, box);
+		this.switchSuccess(that, pageId, pageTask, pageContent, param, box);
 	},
 	ajax: function (that, path, pageId, pageTask, pageContent, param ) {
 
@@ -580,6 +584,20 @@ cPager.prototype._h = {
 	},
 	sendRequest: function (url,callback,postData) {
 
+		jQuery.ajax({
+		      url: url,
+		      dataType: 'html',
+		      cache: false
+
+		})
+		.done(function(data) {
+			//console.log( "done", data );
+			callback(data, url);
+		})
+		.fail(function(e) {
+			console.log( "error", e );
+		});
+		/*
 		var XMLHttpFactories = [
 		    function () {return new XMLHttpRequest();},
 		    function () {return new ActiveXObject("Msxml2.XMLHTTP");},
@@ -612,17 +630,17 @@ cPager.prototype._h = {
 	    req.onreadystatechange = function () {
 	        if (req.readyState != 4) return;
 	        if (req.status != 200 && req.status != 304) {
-			          alert('HTTP error ' + req.status);
+			//          alert('HTTP error ' + req.status);
 	            return;
 	        }
-					//console.log(req);
-					//console.log(method, url);
+					console.log(req);
+					console.log(method, url);
 	        callback(req.responseText, url);
 	    }
 
 	    if (req.readyState == 4) return;
 	    req.send(postData);
-
+*/
 	},
 	loadScript: function(url, callback) {
 	    // Adding the script tag to the head as suggested before
