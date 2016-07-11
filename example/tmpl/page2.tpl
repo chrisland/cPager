@@ -9,6 +9,7 @@
 	<br/>
 	<br/>
 	<button class="pageBtn" data-task="back">back</button>
+	<button class="pageBtn" data-task="back" data-animate="easeInOutQuad" data-direction="right">back with animation</button>
 	<br/>
 	<br/>
 	<hr/>

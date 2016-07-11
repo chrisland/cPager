@@ -4,7 +4,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.7
+* @version 0.2.8
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -152,6 +152,7 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 
 	//console.log('this.switch.task - '+pageId+' - '+pageTask+' - '+pageContent);
 
+	//console.log(['_switch', pageId, pageTask, pageContent]);
 
 	//console.log(this.get());
 	//console.log('switch', pageId, pageTask, pageContent);
@@ -159,14 +160,14 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 	if (param && param.event) {
 		event = param.event;
 	}
-	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this);
-
+	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this, param);
+	//console.log(['_switch, task:', this.switch.task]);
 	if (this.switch.task) {
 		this._h.switchDom(this, pageId, pageTask, pageContent, param);
 	}
 
 
-	//console.log('----------------------------------');
+	//console.log(['----------------------------------', pageId, pageTask]);
 	return this;
 };
 
@@ -215,7 +216,7 @@ cPager.prototype.events = function () {
 			pageForce = this.getAttribute('data-force') || false,
 			history = this.getAttribute('data-history') || true;
 
-		//console.log('clickHandler', pageId, pageTask, pageContent);
+		//console.log('clickHandler', pageId, pageTask, pageContent, param);
 
 		if ( pageId || pageTask ) {
 			if (that._open == pageId && !pageForce) {
@@ -394,25 +395,34 @@ cPager.prototype.addTask = function (key, obj) {
 
 cPager.prototype._h = {
 
-	changeContent : function (e, task, content, pageId, that) {
+	changeContent : function (e, task, content, pageId, that, param) {
 
 		//console.log(['changeContent', e, task, content, pageId]);
 		//console.log(content);
 
 		if (task == 'back') {
+			//console.log(['_changeContent, back!!!!']);
+
+			if (!param) {
+				param = {};
+			}
+
 			var anz = 2;
 			var history = that.getHistory();
 			var last = history[history.length -anz];
+
+			//console.log(['_back', history, param]);
 			if (!last) { return false; }
 			if (last.id) {
-				that.switch(last.id,last.task,last.content, last.param);
+
+				that.switch(last.id,last.task,last.content, param);
 				that.removeHistory(anz);
 			}
 			return true;
 
 		} else if (that._opt.tasks && task) {
 			var t = task.split('.');
-			//console.log(task);
+			//console.log(['_changeContent, task', task, t[0], t[1]]);
 			//console.log(t);
 			if (t.length > 0) {
 				if ( t[0] && t[1] && that._opt.tasks[t[0]] && that._opt.tasks[t[0]][t[1]] ) {
@@ -424,21 +434,25 @@ cPager.prototype._h = {
 					var scope = that._opt.tasks;
 				}
 				//console.log(that._opt.tasks);
-				//console.log(func);
-				if (func && typeof func === 'function') {
+				//console.log(['_changeContent, func', func]);
+				if (func) {
+					//console.log(['_changeContent, return func!!!']);
 					return func(pageId,content,e,that._page,scope);
 				}
 			}
+		} else {
+			return true;
 		}
-		return true;
+		//return true;
 	},
 	switchSuccess: function (that, pageId, pageTask, pageContent, param, dom) {
 
+		//console.log(['_switchSuccess, that.switch.task', that.switch.task, pageId, pageTask, pageContent, dom]);
 		if (typeof that.switch.task === "function") {
 			that.switch.afterAnimate = that.switch.task(dom || that._page)
 		}
 		that.events();
-		if ( String(param.history) != 'false') {
+		if ( param && String(param.history) != 'false') {
 			that.addHistory(pageId, pageTask, pageContent, param);
 		}
 
@@ -452,6 +466,7 @@ cPager.prototype._h = {
 	},
 	ajaxSuccess: function (response, pageId, pageTask, pageContent, that, param) {
 
+		//console.log(['_ajaxSuccess', pageId, pageTask, pageContent]);
 		var temp_page = that._page;
 
     if (param && param.container) {
@@ -540,7 +555,8 @@ cPager.prototype._h = {
 					}
 			  });
 
-    	} else { // no animation
+    } else { // no animation
+			//console.log('- no ani');
 			temp_page.innerHTML = response;
 			temp_page.className = that._pageClass+' ' || '';
 			temp_page.className += 'cPager-'+newClass;
@@ -581,6 +597,7 @@ cPager.prototype._h = {
 	},
 	switchDom : function (that, pageId, pageTask, pageContent, param) {
 
+		//console.log(['_switchDom', pageId, pageTask, pageContent]);
 		if (pageId) {
 			this.ajax( that, './'+that._opt.tmplPath+'/'+pageId+'.tpl', pageId, pageTask, pageContent, param);
 		}

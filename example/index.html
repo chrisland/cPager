@@ -6,42 +6,43 @@
 
 
   <!-- include source files here... -->
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
   <script src="../src/cPager.js"></script>
-  
-	
+
+
 
 </head>
 
 <body>
-	
+
 	<div id="page"></div>
-	
-	
+
+
 	<script>
-		
+
 		var myPager = new cPager({
 			container: 'page',
 			start: 'home',
 			tasks: {
 				'myTask': function () {
-					
+
 					alert('myTask before');
-				
+
 					return function () {
-						
+
 						alert('myTask after');
-						
+
 					};
-					
+
 				}
 			}
 		});
-		
+
 		console.log(myPager);
-		
-			  
+
+
 	</script>
-	
-	
+
+
 </body>
 </html>
