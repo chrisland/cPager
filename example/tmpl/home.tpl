@@ -35,9 +35,9 @@
 	<hr/>
 	<br/>
 	<br/>
-	<button class="pageBtn" data-page="page2" data-animate="easeInQuad">page2 with animate</button>
-	<button class="pageBtn" data-page="page2" data-animate="easeOutQuad">page2 with animate</button>
-	<button class="pageBtn" data-page="page2" data-animate="easeInOutQuad" data-duration="2000">page2 with animate and duration</button>
+	<button class="pageBtn" data-page="page2" data-animate="ease-in-out">page2 with animate</button>
+	<button class="pageBtn" data-page="page2" data-animate="ease-out">page2 with animate</button>
+	<button class="pageBtn" data-page="page2" data-animate="ease-in" data-duration="2000">page2 with animate and duration</button>
 	<br/>
 	<br/>
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="right">page2 with animate  right</button>
@@ -45,6 +45,6 @@
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="bottom">page2 with animate  bottom</button>
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="left">page2 with animate  left</button>
 	<br>
-	<button class="pageBtn" data-page="page2" data-animate="easeInQuad" data-task="home.animate">page2 with animate and task after animation</button>
+	<button class="pageBtn" data-page="page2" data-animate="ease" data-task="home.animate">page2 with animate and task after animation</button>
 
 </div>

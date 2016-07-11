@@ -4,7 +4,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.2.8
+* @version 0.3.0
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -50,6 +50,7 @@ function cPager(param) {
 	this._history = [];
 	this._pageClass = '';
 	this._bodyClass = '';
+	this.animate = false;
 
 	this._opt = {
 		handler: 'pageBtn',
@@ -60,7 +61,11 @@ function cPager(param) {
 		startTask: false,
 		startContent: false,
 		startParam: {history: true},
-		preCache: []
+		preCache: [],
+
+		animate: false,
+		direction: 'left',
+		duration: 2
 	};
 
 	if (param) {
@@ -161,9 +166,14 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 		event = param.event;
 	}
 	this.switch.task = this._h.changeContent( event, pageTask, pageContent, pageId, this, param);
-	//console.log(['_switch, task:', this.switch.task]);
+	//console.log(['_switch, task:', this.switch.task, pageId, pageTask, pageContent, param]);
+
 	if (this.switch.task) {
-		this._h.switchDom(this, pageId, pageTask, pageContent, param);
+
+		var ret = this._h.switchDom(this, pageId, pageTask, pageContent, param);
+		if (!ret && typeof this.switch.task === 'function') {
+			this.switch.task();
+		}
 	}
 
 
@@ -205,12 +215,15 @@ cPager.prototype.events = function () {
 		if (this.classList.contains(that._opt.offButton)) {
 			return false;
 		}
+		if (that.animate) {
+			return false;
+		}
 
 		var pageId = this.getAttribute('data-page'),
 			pageTask = this.getAttribute('data-task'),
 			pageContent = this.getAttribute('data-content'),
 			pageContainer = this.getAttribute('data-container') || false,
-			pageAnimate = this.getAttribute('data-animate') || false,
+			pageAnimate = this.getAttribute('data-animate') || that._opt.animate,
 			pageDuration = this.getAttribute('data-duration') || false,
 			pageDirection = this.getAttribute('data-direction') || false,
 			pageForce = this.getAttribute('data-force') || false,
@@ -397,7 +410,7 @@ cPager.prototype._h = {
 
 	changeContent : function (e, task, content, pageId, that, param) {
 
-		//console.log(['changeContent', e, task, content, pageId]);
+		//console.log(['changeContent', task, content, pageId, that._opt.tasks]);
 		//console.log(content);
 
 		if (task == 'back') {
@@ -447,129 +460,152 @@ cPager.prototype._h = {
 	},
 	switchSuccess: function (that, pageId, pageTask, pageContent, param, dom) {
 
-		//console.log(['_switchSuccess, that.switch.task', that.switch.task, pageId, pageTask, pageContent, dom]);
+		//console.log(['_switchSuccess, that.switch.task', that.switch.task, pageId, pageTask, pageContent, dom, param]);
 		if (typeof that.switch.task === "function") {
+			//console.log('--- 1. return');
 			that.switch.afterAnimate = that.switch.task(dom || that._page)
 		}
-		that.events();
+		if (!param.animate) {
+			that.events();
+		}
+
 		if ( param && String(param.history) != 'false') {
 			that.addHistory(pageId, pageTask, pageContent, param);
 		}
 
 	},
-	animateSuccess: function (that) {
+	animateSuccess: function (that, pageId, pageTask, pageContent, param, newPage) {
+
+		that.animate = false;
 
 		if (typeof that.switch.afterAnimate === "function") {
+			//console.log('--- 2. return');
 			that.switch.afterAnimate();
 		}
+		that.events();
 
 	},
 	ajaxSuccess: function (response, pageId, pageTask, pageContent, that, param) {
 
-		//console.log(['_ajaxSuccess', pageId, pageTask, pageContent]);
-		var temp_page = that._page;
+		//console.log(['_ajaxSuccess', pageId, pageTask, pageContent, param]);
+		var oldPage = that._page;
 
     if (param && param.container) {
-       temp_page = document.getElementById(param.container);
+       oldPage = document.getElementById(param.container);
 
-    	if (!temp_page) {
+    	if (!oldPage) {
     		throw new Error("missing container #"+this._opt.container);
     		return false;
     	}
     }
 		var newClass = pageId.replace(/\//ig, '-');
+		//console.log('------'+param.animate+' - '+param.duration+' - '+param.direction);
 		if (param && param.animate) {
 
-			var box = document.createElement('div');
-			box.id = that._opt.container;
-			box.className = that._pageClass+' ' || '';
-			box.className += 'cPager-'+newClass;
+			that.animate = true;
 
-			box.innerHTML = response;
-			box.style.position = 'relative';
-			document.body.insertBefore(box, temp_page.nextSibling);
-
-			temp_page.id = that._opt.container+'Temp';
-			temp_page.style.width = box.clientWidth+'px';
-			temp_page.style.height = box.clientHeight+'px';
-			temp_page.style.position = 'relative';
-
-			box.style.width = box.clientWidth+'px';
-			box.style.height = box.clientHeight+'px';
-
-			var delta = that._h.easingFunctions[param.animate],
-				dir = false,
-				move = false;
-
-			if (!delta) {
-				delta = that._h.easingFunctions.linear;
+			if (!param.duration) {
+				param.duration = that._opt.duration;
+			}
+			if (!param.direction) {
+				param.direction = that._opt.direction;
 			}
 
-			if (param.direction == 'right') {
-				box.style.left = (temp_page.offsetWidth * (-1) )+'px';
-				box.style.top = temp_page.offsetTop+'px';
-				move = [temp_page.offsetWidth * (-1), parseInt(temp_page.offsetLeft), parseInt(temp_page.offsetLeft), temp_page.offsetWidth];
+			//oldPage.parentNode.style.overflow = 'hidden';
+			oldPage.id = that._opt.container+'Temp';
+			oldPage.style.width = oldPage.clientWidth+'px';
+			oldPage.style.height = oldPage.clientHeight+'px';
+			oldPage.style.position = 'fixed';
+			oldPage.style.transform = 'translate3d(0,0,0)';
+			oldPage.style.transition = 'transform '+param.duration+'s '+param.animate;
 
-			} else if (param.direction == 'top') {
-				box.style.left = temp_page.offsetLeft+'px';
-				box.style.top = temp_page.offsetHeight+'px';
-				move = [parseInt(box.style.top), parseInt(temp_page.offsetTop), parseInt(temp_page.offsetTop), temp_page.offsetHeight * (-1)];
-				dir = true;
+			var newPage = document.createElement('div');
+			newPage.id = that._opt.container;
+			newPage.className = that._pageClass+' ' || '';
+			newPage.className += 'cPager-'+newClass;
+			newPage.innerHTML = response;
+			newPage.style.position = 'fixed';
 
-			} else if (param.direction == 'bottom') {
-				box.style.left = temp_page.offsetLeft+'px';
-				box.style.top = '-'+temp_page.offsetHeight+'px';
-				move = [parseInt(box.style.top), parseInt(temp_page.offsetTop), parseInt(temp_page.offsetTop), temp_page.offsetHeight];
-				dir = true;
+			newPage.style.width = oldPage.clientWidth+'px';
+			newPage.style.height = oldPage.clientHeight+'px';
 
-			} else {
-				box.style.left = temp_page.offsetWidth+'px';
-				box.style.top = temp_page.offsetTop+'px';
-				move = [parseInt(box.style.left), parseInt(temp_page.offsetLeft), parseInt(temp_page.offsetLeft), temp_page.offsetWidth * (-1)];
+			switch (param.direction) {
+				case 'left':
+				default:
+					newPage.style.transform = 'translate3d('+oldPage.style.width+',0,0)';
+					break;
+				case 'right':
+					newPage.style.transform = 'translate3d(-'+oldPage.style.width+',0,0)';
+					break;
+				case 'top':
+					newPage.style.transform = 'translate3d(0,'+oldPage.style.height+',0)';
+					break;
+				case 'bottom':
+					newPage.style.transform = 'translate3d(0,-'+oldPage.style.height+',0)';
+					break;
 			}
 
-			if (!move) {
-				return false;
-			}
+			newPage.style.transition = 'transform '+param.duration+'s '+param.animate;
 
-			move[4] = move[1] - move[0];
-			move[5] = move[3] - move[2];
+			document.body.insertBefore(newPage, oldPage.nextSibling);
 
-			  that._h.animate({
-			    delay: 1,
-			    duration: param.duration || 400,
-			    delta: delta,
-			    step: function(delta) {
-						if (dir) {
-							box.style.top = (( move[4] * delta ) + move[0]) + 'px';
-							temp_page.style.top = (( move[5] * delta ) + move[2]) + 'px';
-						} else {
-							box.style.left = (( move[4] * delta ) + move[0]) + 'px';
-							temp_page.style.left = (( move[5] * delta ) + move[2]) + 'px';
-						}
-			    },
-					end: function () {
-						temp_page.remove();
-						that._page = box;
-						that._h.animateSuccess(that);
-					}
-			  });
+			setTimeout(function() {
+
+
+				switch (param.direction) {
+					case 'left':
+					default:
+						oldPage.style.transform = 'translate3d(-'+oldPage.style.width+',0,0)';
+						break;
+					case 'right':
+						oldPage.style.transform = 'translate3d('+oldPage.style.width+',0,0)';
+						break;
+					case 'top':
+						oldPage.style.transform = 'translate3d(0,-'+oldPage.style.height+',0)';
+						break;
+					case 'bottom':
+						oldPage.style.transform = 'translate3d(0,'+oldPage.style.height+',0)';
+						break;
+				}
+				newPage.style.transform = 'translate3d(0,0,0)';
+
+				//console.log(that);
+				that._lastopen = that._open;
+				that._open = pageId;
+				that._page = newPage;
+				that._h.switchSuccess(that, pageId, pageTask, pageContent, param, newPage);
+
+
+			}, 100);
+
+
+			setTimeout(function () {
+				//console.log('--ende', oldPage, that._page, that);
+
+				oldPage.remove();
+				that._h.animateSuccess(that, pageId, pageTask, pageContent, param, newPage);
+
+				oldPage.style.transition = '';
+				newPage.style.transition = '';
+
+			}, (param.duration*1000)+100 );
 
     } else { // no animation
 			//console.log('- no ani');
-			temp_page.innerHTML = response;
-			temp_page.className = that._pageClass+' ' || '';
-			temp_page.className += 'cPager-'+newClass;
-			box = that._page;
+			oldPage.innerHTML = response;
+			oldPage.className = that._pageClass+' ' || '';
+			oldPage.className += 'cPager-'+newClass;
+
+			that._lastopen = that._open;
+			that._open = pageId;
+			this.switchSuccess(that, pageId, pageTask, pageContent, param, that._page);
 		}
 
 		document.body.className = that._bodyClass+' ' || '';
 		document.body.className+= 'cPager-body-'+newClass;
 
 
-		that._lastopen = that._open;
-		that._open = pageId;
-		this.switchSuccess(that, pageId, pageTask, pageContent, param, box);
+
 	},
 	ajax: function (that, path, pageId, pageTask, pageContent, param ) {
 
@@ -677,59 +713,6 @@ cPager.prototype._h = {
 
 	    // Fire the loading
 	    head.appendChild(script);
-	},
-	animate: function(opts) {
-
-		if ( !opts.delay || !opts.duration || !opts.delta || !opts.step ) {
-			return false;
-		}
-	  var start = new Date;
-	  var id = setInterval(function() {
-	    var timePassed = new Date - start;
-	    var progress = timePassed / opts.duration;
-
-	    if (progress > 1) progress = 1;
-
-	    var delta = opts.delta(progress);
-	    opts.step(delta);
-
-	    if (progress == 1) {
-	      clearInterval(id);
-				if (opts.end) {
-					opts.end();
-				}
-	    }
-	  }, opts.delay || 10);
-
-	},
-	easingFunctions: {
-	  // no easing, no acceleration
-	  linear: function (t) { return t },
-	  // accelerating from zero velocity
-	  easeInQuad: function (t) { return t*t },
-	  // decelerating to zero velocity
-	  easeOutQuad: function (t) { return t*(2-t) },
-	  // acceleration until halfway, then deceleration
-	  easeInOutQuad: function (t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t },
-	  // accelerating from zero velocity
-	  easeInCubic: function (t) { return t*t*t },
-	  // decelerating to zero velocity
-	  easeOutCubic: function (t) { return (--t)*t*t+1 },
-	  // acceleration until halfway, then deceleration
-	  easeInOutCubic: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
-	  // accelerating from zero velocity
-	  easeInQuart: function (t) { return t*t*t*t },
-	  // decelerating to zero velocity
-	  easeOutQuart: function (t) { return 1-(--t)*t*t*t },
-	  // acceleration until halfway, then deceleration
-	  easeInOutQuart: function (t) { return t<0.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
-	  // accelerating from zero velocity
-	  easeInQuint: function (t) { return t*t*t*t*t },
-	  // decelerating to zero velocity
-	  easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
-	  // acceleration until halfway, then deceleration
-	  easeInOutQuint: function (t) { return t<0.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
 	}
-
 
 };
