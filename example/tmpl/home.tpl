@@ -20,6 +20,8 @@
 	<button class="pageBtn" data-task="myTask" data-content="myContent">Only Task and Content</button>
 	<br/><br/>
 	<button class="pageBtn" data-task="back">back</button>
+	<button class="pageBtn" data-task="back" data-animate="ease" data-direction="right">back with animation</button>
+
 	<br/>
 	<br/>
 	<hr/>
@@ -44,7 +46,9 @@
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="top">page2 with animate  top</button>
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="bottom">page2 with animate  bottom</button>
 	<button class="pageBtn" data-page="page2" data-animate="linear" data-direction="left">page2 with animate  left</button>
-	<br>
-	<button class="pageBtn" data-page="page2" data-animate="ease" data-task="home.animate">page2 with animate and task after animation</button>
+	<br/>	<br/>
+	<button class="pageBtn" data-page="page2" data-animate="ease-in-out" data-task="home.animate">page2 with animate and task after animation</button>
+	<br/>	<br/>
+	<button class="pageBtn" data-page="page1" data-animate="ease-in-out" data-task="home.page1">page1 with animate and task after animation</button>
 
 </div>

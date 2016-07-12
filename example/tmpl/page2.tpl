@@ -19,4 +19,8 @@
 	<button class="pageBtn" data-page="home" data-animate="ease-out" data-direction="top">home with animate  top</button>
 	<button class="pageBtn" data-page="home" data-animate="linear" data-direction="bottom">home with animate  bottom</button>
 	<button class="pageBtn" data-page="home" data-animate="linear" data-direction="left">home with animate  left</button>
+
+	<br/>	<br/>
+	<button class="pageBtn" data-page="home" data-animate="ease-in-out" data-task="home.animate">home with animate and task after animation</button>
+
 </div>
