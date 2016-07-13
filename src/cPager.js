@@ -2,7 +2,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.3.1
+* @version 0.3.2
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -404,8 +404,11 @@ cPager.prototype._h = {
 					func = that._opt.tasks[t[0]];
 					scope = that._opt.tasks;
 				}
-				if (func) {
+				if (func && typeof func == 'function') {
 					return func(pageId,content,e,that._page,scope);
+				} else {
+					console.error('cPager Error: missing task function');
+					return false;
 				}
 			}
 		}
