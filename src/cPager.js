@@ -1,8 +1,16 @@
+/*
+//! TODO:
+
+  start delay... erst nicht und start page erst nach x sekunden
+. reload with same page and task and content.
+
+*/
+
 /**
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.3.2
+* @version 0.4.0
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -51,59 +59,138 @@ function cPager(param) {
 	this.animate = false;
 
 	this._opt = {
-		handler: 'pageBtn',
-		tmplPath: 'tmpl',
-		offButton: 'pageBtnOffline',
-		container: 'page',
-		start: false,
-		startTask: false,
-		startContent: false,
-		startParam: {history: true},
-		preCache: [],
 
-		animate: false,
-		direction: 'left',
-		duration: 2
+    debug: false,
+
+    container: 'page',
+
+    handler: 'pageBtn',
+    handlerOff: 'pageBtnOff',
+
+    tmpl: [],
+    tmplPath: 'tmpl',
+
+    ctrl: [],
+    ctrlPath: '',
+
+    tasks: [],
+
+    start: {
+      page: false,
+      task: false,
+      content: false,
+      param: {
+        history: true
+      }
+    },
+
+    animate: {
+      timing: false,
+      direction: 'left',
+      duration: 2
+    },
+
+    onReady: false
+
+
+
 	};
 
-	if (param) {
-		for (var i in param) {
-			if(param.hasOwnProperty(i)){
-				this._opt[i] = param[i];
-			}
-		}
-	}
+  var self = this;
+
+
+
+  var deepExtend = function(out) {
+    out = out || {};
+
+    for (var i = 1; i < arguments.length; i++) {
+      var obj = arguments[i];
+
+      if (!obj)
+        continue;
+
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (typeof obj[key] === 'object')
+            out[key] = deepExtend(out[key], obj[key]);
+          else
+            out[key] = obj[key];
+        }
+      }
+    }
+
+    return out;
+  };
+
+  this._opt = deepExtend({}, this._opt, param);
+
+
+  var debug = this._opt.debug;
+  var count = this._opt.ctrl.length + +this._opt.tmpl.length || 0;
+
+  function done() {
+    count--;
+    if ( count == 0 || count < 0 ) {
+      // START
+      if ( self._lastopen ) {
+        self.switch(self._lastopen);
+      } else {
+        if (self._opt.start && self._opt.start.page) {
+          self.switch(self._opt.start.page, self._opt.start.task, self._opt.start.content, self._opt.start.param);
+        }
+      }
+      if (self._opt.onReady && typeof self._opt.onReady === 'function') {
+        console.log('cPager - onReady');
+        self._opt.onReady();
+      }
+      if (debug) {
+        console.log('cPager - loaded');
+      }
+    }
+  }
+
+  // INIT
+  this._page = document.getElementById(this._opt.container);
+  if (!this._page) {
+    throw new Error("missing main container #"+this._opt.container);
+    return false;
+  }
+  this._pageClass = this._page.className || '';
+  this._bodyClass = document.body.className || '';
+
+
+
+  if (debug) {
+    console.log('cPager - initialize');
+  }
 
 	// LOAD EXTERNAL JS TASK FILES
-	if (this._opt.controller && this._opt.controller.length > 0) {
-		for (var i = 0; i < this._opt.controller.length; i++) {
-			this._h.loadScript(this._opt.controller[i]);
+	if (this._opt.ctrl && this._opt.ctrl.length > 0) {
+		for (var i = 0; i < this._opt.ctrl.length; i++) {
+			this._h.loadScript(this._opt.ctrl[i], function (name) {
+        if (debug) {
+          console.log('cPager - load script: '+name);
+        }
+        done();
+      });
 		}
 	}
 
 	// LOAD AJAX TPL PAGES
 	this.ajaxCache = {};
-	if (this._opt.preCache.length > 0) {
-		this._h.cache(this, this._opt.preCache);
+	if (this._opt.tmpl.length > 0) {
+		this._h.cache(this, this._opt.tmpl, function (name) {
+      if (debug) {
+        console.log('cPager - cache page: '+name);
+      }
+      done();
+    });
 	}
 
-	// INIT
-	this._page = document.getElementById(this._opt.container);
-	if (!this._page) {
-		throw new Error("missing main container #"+this._opt.container);
-		return false;
-	}
-	this._pageClass = this._page.className || '';
-	this._bodyClass = document.body.className || '';
+  if (!count || count == 0) {
+    done();
+  }
 
-	// START
-	if ( this._lastopen ) {
-		this.switch(this._lastopen);
-	} else {
-		if (this._opt.start) {
-			this.switch(this._opt.start,this._opt.startTask, this._opt.startContent, this._opt.startParam);
-		}
-	}
 
 	return this;
 }
@@ -172,6 +259,10 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
 
 	}
 
+  if (!param) {
+    param = {};
+  }
+
 	this.switch.task = this._h.getTask( event, pageTask, pageContent, pageId, this, param);
 	if (pageTask && !this.switch.task) { return false; }
 	if (pageId) {
@@ -213,14 +304,14 @@ cPager.prototype.events = function () {
 	var that = this;
 	var clickHandler = function (e) {
 
-		if (this.classList.contains(that._opt.offButton)) {	return false; }
+		if (that._opt.handlerOff && this.classList.contains(that._opt.handlerOff)) {	return false; }
 		if (that.animate) { return false;	}
 
 		var pageId = this.getAttribute('data-page'),
 			pageTask = this.getAttribute('data-task'),
 			pageContent = this.getAttribute('data-content'),
 			pageContainer = this.getAttribute('data-container') || false,
-			pageAnimate = this.getAttribute('data-animate') || that._opt.animate,
+			pageAnimate = this.getAttribute('data-animate') || that._opt.animate.timing,
 			pageDuration = this.getAttribute('data-duration') || false,
 			pageDirection = this.getAttribute('data-direction') || false,
 			pageForce = this.getAttribute('data-force') || false,
@@ -310,7 +401,9 @@ cPager.prototype.removeHistory = function (anz) {
 
 	if (anz && !isNaN(anz) && this._history.length > 0) {
 		this._history = this._history.slice(0, this._history.length -anz);
-	}
+	} else {
+    this._history = [];
+  }
 	return true;
 };
 
@@ -405,9 +498,15 @@ cPager.prototype._h = {
 					scope = that._opt.tasks;
 				}
 				if (func && typeof func == 'function') {
-					return func(pageId,content,e,that._page,scope);
+					return func({
+            page: pageId,
+            content: content,
+            event: e,
+            node: that._page,
+            scope: scope
+          });
 				} else {
-					console.error('cPager Error: missing task function');
+					console.error('cPager Error: missing task function', task);
 					return false;
 				}
 			}
@@ -448,6 +547,7 @@ cPager.prototype._h = {
     	}
     }
 		var newClass = pageId.replace(/\//ig, '-');
+    document.body.className = that._bodyClass+' ' || '';
 		document.body.className += ' cPager-body-'+newClass;
 
 		if (param && param.animate) {
@@ -468,10 +568,10 @@ cPager.prototype._h = {
 		that.animate = true;
 
 		if (!param.duration) {
-			param.duration = that._opt.duration;
+			param.duration = that._opt.animate.duration;
 		}
 		if (!param.direction) {
-			param.direction = that._opt.direction;
+			param.direction = that._opt.animate.direction;
 		}
 
 		//oldPage.parentNode.style.overflow = 'hidden';
@@ -571,12 +671,18 @@ cPager.prototype._h = {
 		}
 
 	},
-	cache: function (that, arr) {
+	cache: function (that, arr, callback) {
 
 		for (var i=0;i<arr.length;i++) {
 			var path = './'+that._opt.tmplPath+'/'+arr[i]+'.tpl';
+      if (that._opt.debug) {
+        path = path+'?t='+Math.random(1,100);
+      }
 			this.sendRequest(path,function (req, url) {
 				that.ajaxCache[url] = req;
+        if (callback && typeof callback === 'function') {
+          callback(url);
+        }
 			});
 		}
 
@@ -584,10 +690,9 @@ cPager.prototype._h = {
 	sendRequest: function (url,callback,postData) {
 
 		if (window.jQuery) {
-
 			jQuery.ajax({url: url, dataType: 'html', cache: false })
 			.done(function(data) { callback(data, url); })
-			.fail(function(e) { console.log( "error", e ); });
+			.fail(function(e) { console.log( "cPager - jQuery ajax error", e ); });
 
 		} else {
 
@@ -635,9 +740,13 @@ cPager.prototype._h = {
 	    var head = document.getElementsByTagName('head')[0];
 	    var script = document.createElement('script');
 	    script.type = 'text/javascript';
-	    script.src = url+'.js';
+	    script.src = this._opt.ctrlPath+'/'+url+'.js';
 	    script.onreadystatechange = callback;
-	    script.onload = callback;
+	    script.onload = function () {
+        if (callback && typeof callback === 'function') {
+          callback(url);
+        }
+      };
 	    head.appendChild(script);
 
 	}

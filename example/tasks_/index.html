@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Example - Default</title>
+
+   <link rel="stylesheet" type="text/css" href="../_css/style.css">
+
+  <!-- include source files here... -->
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <script src="../../src/cPager.js"></script>
+
+
+</head>
+
+<body>
+
+	<div id="page"></div>
+
+
+	<script>
+
+		var myPager = new cPager({
+      debug: true,
+			container: 'page',
+			start: {
+        page: 'home'
+      },
+			tasks: {
+				myTask: function () {
+
+					console.log('myTask before');
+
+					return function () {
+
+						console.log('myTask after');
+
+					};
+
+				}
+			}
+		});
+
+		console.log(myPager);
+
+
+	</script>
+
+
+</body>
+</html>

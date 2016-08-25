@@ -1,48 +1,315 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Example</title>
+  <head>
+    <meta charset="utf-8">
+    <title>Example - All</title>
+    <link type="text/css" rel="stylesheet" href="style.css">
+
+  </head>
+
+  <body>
+
+    <div class="all">
+
+    <h2>cPager</h2>
+
+    <div class="header">
+      <p class="left">
+        <h1>bla bla</h1>
+        <p>Version: 0.4.0</p>
+      </p>
+      <div class="right">
+        <a href="" alt="" title="" class="download">Download</a>
+      </div>
+    </div>
 
 
-  <!-- include source files here... -->
-  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-  <script src="../src/cPager.js"></script>
+
+
+    <h3>HowToUse</h3>
+    <div class="howto">
+      <div class="first">
+        <p>Html</p>
+        <textarea readonly > <script src="cPager.js"></script> </textarea>
+      </div>
+      <div class="second">
+        <p>JavaScript</p>
+        <textarea readonly >
+var myPager = new cPager({
+  debug: true,
+  container: 'page',
+  start: {
+    page: 'home'
+  },
+  animate: {
+    duration: 2
+  }
+});
+        </textarea>
+      </div>
+    </div>
 
 
 
-</head>
 
-<body>
+    <h3>Example</h3>
+    <div class="example">
 
-	<div id="page"></div>
+      <div class="box">
+        <h1>Default</h1>
+        <iframe src="default/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+  var myPager = new cPager({
+    container: 'page',
+  	start: {
+      page: 'home'
+    }
+  });
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Animate</h1>
+        <iframe src="animate/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+  var myPager = new cPager({
+    container: 'page',
+    start: {
+      page: 'home'
+    },
+    animate: {
+      duration: 2
+    }
+  });
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Tasks</h1>
+        <iframe src="tasks/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+  var myPager = new cPager({
+    container: 'page',
+    start: {
+      page: 'home'
+    },
+    tasks: {
+      textTask: function (e) {
+        // befor DOM was change
+        return function (node) {
+          // after DOM was change
+          node.querySelector('#console').innerHTML = 'This was changed by JavaScript';
+        };
+      },
+      getTitle: function (e) {
+        // befor DOM was change
+        var headline = e.node.querySelector('h1').innerHTML;
+        return function (node) {
+          // after DOM was change
+          node.querySelector('#console').innerHTML = 'The last Headline was '+headline;
+        };
+      }
+    }
+  });
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Animate & Tasks</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+  var myPager = new cPager({
+    container: 'page',
+    start: {
+      page: 'home'
+    },
+    animate: {
+      timing: 'ease'
+    },
+    tasks: {
+
+      textTask: function (e) {
+        e.node.querySelector('#console').innerHTML = 'Animation start...';
+        // befor DOM was change
+        return function (node) {
+          // after DOM was change
+          node.querySelector('#console').innerHTML = '... during animation ...';
+          return function () {
+            // after DOM was animated
+            node.querySelector('#console').innerHTML = 'finished animation!';
+          }
+        };
+      },
+
+      getTitle: function (e) {
+        // befor DOM was change
+        var headline = e.node.querySelector('h1').innerHTML;
+        return function (node) {
+          // after DOM was change
+          var dom = node.querySelector('#console');
+          dom.innerHTML = 'The last Headline was '+headline;
+          return function () {
+            // after DOM was animated
+            dom.style.border = '1px solid #20903c';
+          }
+        };
+      },
+
+      color: function (e) {
+        // befor DOM was change
+        e.node.style.backgroundColor = '#1c1c1c';
+        return function (node) {
+          // after DOM was change
+          node.style.backgroundColor = '#121212';
+          return function () {
+            // after DOM was animated
+            node.style.backgroundColor = '#0f0f0f';
+          }
+        };
+      }
+    }
+  });
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>only Tasks</h1>
+        <iframe src="onlyTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+  var myPager = new cPager({
+    container: 'page',
+    start: {
+      page: 'home'
+    },
+    tasks: {
+      clear: function (e) {
+        // The DOM was NOT changed !
+        e.node.querySelector('#console').innerHTML = '';
+      },
+      set: function (e) {
+        // The DOM was NOT changed !
+        e.node.querySelector('#console').innerHTML = 'This was changed by JavaScript';
+      }
+    }
+  });
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>externel Tasks</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Cache</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Kitchensink</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>App</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+        </textarea>
+      </div>
+
+      <div class="box">
+        <h1>Audio player</h1>
+        <iframe src="animateTask/index.html"></iframe>
+        <a href="" alt="" title="">View Code</a>
+        <textarea disabled>
+        </textarea>
+      </div>
+    </div>
+
+    <div class="">
+      <h3>Parameter</h3>
 
 
-	<script>
 
-		var myPager = new cPager({
-			container: 'page',
-			start: 'home',
-			tasks: {
-				'myTask': function () {
+      <div class="param">
+        <h5>debug</h5>
+        <div class="typ"><span class="label">typ</span><span class="value">boolean</span></div>
+        <div class="default"><span class="label">default</span><span class="value">false</span></div>
+        <p>
+          bla bla...
+        </p>
+      </div>
 
-					alert('myTask before');
+      <div class="param">
+        <h5>container</h5>
+        <div class="typ"><span class="label">typ</span><span class="value">dom id</span></div>
+        <div class="default"><span class="label">default</span><span class="value">page</span></div>
+        <p>
+          bla bla...
+        </p>
+      </div>
 
-					return function () {
+      <div class="param">
+        <h5>handler</h5>
+        <div class="typ"><span class="label">typ</span><span class="value">dom class</span></div>
+        <div class="default"><span class="label">default</span><span class="value">pageBtn</span></div>
+        <p>
+          bla bla...
+        </p>
+      </div>
 
-						alert('myTask after');
+      <div class="param">
+        <h5>handlerOff</h5>
+        <div class="typ"><span class="label">typ</span><span class="value">dom class</span></div>
+        <div class="default"><span class="label">default</span><span class="value">pageBtnOff</span></div>
+        <p>
+          bla bla...
+        </p>
+      </div>
 
-					};
+      <h5>tmpl</h5>: [],
+      <h5>tmplPath</h5>: 'tmpl',
 
-				}
-			}
-		});
+      <h5>ctrl</h5>: [],
+      <h5>ctrlPath</h5>: '',
 
-		console.log(myPager);
+      <h5>tasks</h5>: [],
 
+      <h5>start</h5>: {
+        <h6>page</h6>: false,
+        <h6>task</h6>: false,
+        <h6>content</h6>: false,
+        <h6>param</h6>: {
+          <h7>history</h7>: true
+        }
+      },
 
-	</script>
+      <h5>animate</h5>: {
+        <h6>timing</h6>: false,
+        <h6>direction</h6>: 'left',
+        <h6>duration</h6>: 2
+      },
 
+      <h5>onReady</h5>: false
+    </div>
 
-</body>
+  </div><!-- all -->
+
+  </body>
 </html>

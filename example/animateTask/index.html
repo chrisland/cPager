@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Example - Default</title>
+
+     <link rel="stylesheet" type="text/css" href="../_css/style.css">
+
+    <!-- include source files here... -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="../../src/cPager.js"></script>
+
+    <style>
+      body {
+        color: #20903c;
+      }
+      .pageBtn {
+        border: 1px solid #20903c;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  	<div id="page"></div>
+
+  	<script>
+
+    var myPager = new cPager({
+      debug: true,
+      container: 'page',
+      start: {
+        page: 'home'
+      },
+      animate: {
+        timing: 'ease'
+      },
+      tasks: {
+
+        textTask: function (e) {
+          e.node.querySelector('#console').innerHTML = 'Animation start...';
+          // befor DOM was change
+          return function (node) {
+            // after DOM was change
+            node.querySelector('#console').innerHTML = '... during animation ...';
+            return function () {
+              // after DOM was animated
+              node.querySelector('#console').innerHTML = 'finished animation!';
+            }
+          };
+        },
+
+        getTitle: function (e) {
+          // befor DOM was change
+          var headline = e.node.querySelector('h1').innerHTML;
+          return function (node) {
+            // after DOM was change
+            var dom = node.querySelector('#console');
+            dom.innerHTML = 'The last Headline was '+headline;
+            return function () {
+              // after DOM was animated
+              dom.style.border = '1px solid #20903c';
+            }
+          };
+        },
+
+        color: function (e) {
+          // befor DOM was change
+          e.node.style.backgroundColor = '#1c1c1c';
+          return function (node) {
+            // after DOM was change
+            node.style.backgroundColor = '#121212';
+            return function () {
+              // after DOM was animated
+              node.style.backgroundColor = '#0f0f0f';
+            }
+          };
+        }
+      }
+    });
+
+  	</script>
+
+  </body>
+</html>

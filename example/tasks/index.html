@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Example - Default</title>
+
+    <link rel="stylesheet" type="text/css" href="../_css/style.css">
+
+    <!-- include source files here... -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="../../src/cPager.js"></script>
+
+    <style>
+      body {
+        color: #df621c;
+      }
+      .pageBtn {
+        border: 1px solid #df621c;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  	<div id="page"></div>
+
+  	<script>
+
+  		var myPager = new cPager({
+        debug: true,
+  			container: 'page',
+  			start: {
+          page: 'home'
+        },
+        tasks: {
+          textTask: function (e) {
+            // befor DOM was change
+  					return function (node) {
+              // after DOM was change
+              node.querySelector('#console').innerHTML = 'This was changed by JavaScript';
+  					};
+  				},
+          getTitle: function (e) {
+            // befor DOM was change
+            var headline = e.node.querySelector('h1').innerHTML;
+  					return function (node) {
+              // after DOM was change
+              node.querySelector('#console').innerHTML = 'The last Headline was '+headline;
+  					};
+  				}
+  			}
+  		});
+
+  	</script>
+
+  </body>
+</html>

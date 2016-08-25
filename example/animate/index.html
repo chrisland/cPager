@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Example - Default</title>
+
+     <link rel="stylesheet" type="text/css" href="../_css/style.css">
+
+    <!-- include source files here... -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="../../src/cPager.js"></script>
+
+    <style>
+      body {
+        color: #842090;
+      }
+      .pageBtn {
+        border: 1px solid #842090;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  	<div id="page"></div>
+
+  	<script>
+
+  		var myPager = new cPager({
+        debug: true,
+  			container: 'page',
+  			start: {
+          page: 'home'
+        },
+        animate: {
+          duration: 2
+        }
+  		});
+
+  	</script>
+
+  </body>
+</html>
