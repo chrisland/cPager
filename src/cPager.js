@@ -165,15 +165,18 @@ function cPager(param) {
   }
 
 	// LOAD EXTERNAL JS TASK FILES
-	if (this._opt.ctrl && this._opt.ctrl.length > 0) {
-		for (var i = 0; i < this._opt.ctrl.length; i++) {
-			this._h.loadScript(this._opt.ctrl[i], function (name) {
-        if (debug) {
-          console.log('cPager - load script: '+name);
-        }
-        done();
-      });
-		}
+	if (this._opt.ctrl) {
+		for (var i in this._opt.ctrl) {
+			if (this._opt.ctrl.hasOwnProperty(i)) {
+				this._h.loadScript(this._opt.ctrlPath+'/'+this._opt.ctrl[i]+'.js', function (name) {
+					if (debug) {
+					  console.log('cPager - load script: '+name);
+					}
+					done();
+				});
+			}
+	  	}
+
 	}
 
 	// LOAD AJAX TPL PAGES
@@ -736,11 +739,11 @@ cPager.prototype._h = {
 
 	},
 	loadScript: function(url, callback) {
-
+		//console.log(cPager);
 	    var head = document.getElementsByTagName('head')[0];
 	    var script = document.createElement('script');
 	    script.type = 'text/javascript';
-	    script.src = this._opt.ctrlPath+'/'+url+'.js';
+	    script.src = url;
 	    script.onreadystatechange = callback;
 	    script.onload = function () {
         if (callback && typeof callback === 'function') {
