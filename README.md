@@ -60,7 +60,7 @@ Version: 0.4.x
 
 ### Folder Structure:
 
-##### Default/Suggestion
+##### Default/Suggestion:
 
 - index.html
 - js/
@@ -93,7 +93,7 @@ Version: 0.4.x
 
 
 
-### Initialize Parameters:
+## Initialize Parameters:
 
 	var myPager = new cPager({
 
@@ -135,23 +135,19 @@ Version: 0.4.x
 
 
 
-### switch([pageId], [pageTask], [pageContent])
+### switch([page], [task], [content])
 
 Manual Switch Page
 
 ###### Examples:
 
-	var myPager = new cPager()
-
-	myPager.switch('home');
-
 	var myPager = new cPager({
 		tasks: {
-			'myTask': function (pageId, pageContent, event, dom) {
+			'myTask': function (e) {
 
 				alert('myTask before edit Dom');
 
-				return function () {
+				return function (dom) {
 					alert('myTask after insert into Dom');
 				};
 			}
@@ -183,7 +179,7 @@ Set the click-events for all buttons inside the DOM
 
 ###### Examples:
 
-	var myPager = new cPager()
+	var myPager = new cPager(param);
 
 	myPager.events();
 
