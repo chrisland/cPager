@@ -71,7 +71,7 @@ function cPager(param) {
     tmplPath: 'tmpl',
 
     ctrl: [],
-    ctrlPath: '',
+    ctrlPath: 'tasks',
 
     tasks: [],
 
@@ -462,7 +462,7 @@ cPager.prototype.addHistory = function (pageId, pageTask, pageContent, pageParam
 */
 
 
-cPager.prototype.addTask = function (key, obj) {
+cPager.prototype.ctrl = function (key, obj) {
 
 	if (!key || typeof key !== 'string' || !obj || typeof obj !== 'object') {
 		return false;

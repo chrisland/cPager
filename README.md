@@ -2,26 +2,39 @@
 
 <!-- Start src/cPager.js -->
 
-## cPager
+# cPager
 
-Easy JS one-Page system framework with template files
+Easy JS one-Page system framework with template files and controller
+Make easy Prototypes, Mobile App or App with with Phonegap.
 
-Version: 0.1.3
+Version: 0.4.x
 
-Author: Christian Marienfeld post@chrisand.de 
 
-### Examples:
+
+## How To Use:
+
+*HTML:*
+
+	<script src="./cPager.js"></script>
+
+*JavaScript:*
 
 	var myPager = new cPager({
 		container: 'page',
-		start: 'home',
+		start: {
+			page: 'home'
+		},
 		tasks: {
-			'myTask': function (pageId, pageContent, event, dom) {
-				
-				alert('myTask before');
-			
-				return function () {
-					alert('myTask after');
+			'myTask': function (e) {
+
+				alert('myTask before DOM changed');
+
+				return function (dom) {
+					alert('myTask after DOM changed');
+
+					return function () {
+						alert('myTask after DOM was animated');
+					};
 				};
 			}
 		}
@@ -34,18 +47,99 @@ Author: Christian Marienfeld post@chrisand.de
 	myPager.switch('myFolder/myPage'); // will open ./tmpl/myFolder/myPage.tpl
 
 
+*Template Home File:*
 
-### Return:
+	<div class="all">
+		<h1>Home</h1>
 
-* **Object** cPager Object
+		<button class="pageBtn" data-page="kontakt">Example Button</button>
+		<button class="pageBtn" data-page="users/list" data-task="myTask">Example Button</button>
 
-#####------------------------------------------------------
+	</div>
 
-## switch([pageId=undefined], [pageTask=undefined], [pageContent=undefined])
+
+### Folder Structure:
+
+##### Default/Suggestion
+
+- index.html
+- js/
+	- cPager.js
+- task/
+	- \*.js
+	- ... external controller files, see ctrl()
+- tmpl/
+	- \*.tpl
+	- ... html templates files as \*.tpl
+
+##### Example:
+
+- index.html
+- js/
+	- cPager.js
+	- app.js
+- task/
+	- media.js
+	- users.js
+	- databse.js
+- tmpl/
+	- init.tpl
+	- home.tpl
+	- kontakt.tpl
+	- user/
+		- list.tpl
+		- details.tpl
+		- form.tpl
+
+
+
+### Initialize Parameters:
+
+	var myPager = new cPager({
+
+		debug: false, // boolean
+
+	    container: 'page', // string; dom node ID
+
+	    handler: 'pageBtn', // string; dom node class name
+	    handlerOff: 'pageBtnOff', // string; dom node class name
+
+	    tmpl: [], // array; tpl file names for precache
+	    tmplPath: 'tmpl', // string; folder name
+
+	    ctrl: [], // array; controller/js file names for precache
+	    ctrlPath: '', // string; folder name
+
+	    tasks: [], // array; global task functions
+
+	    start: {
+	      page: false, // string; start with tpl file
+	      task: false, // string; start with this global task
+	      content: false, // string; start with this content for task
+	      param: {
+	        history: true // boolean; switch page and add to history?
+	      }
+	    },
+
+	    animate: {
+	      timing: false, // string; css animate easing function
+	      direction: 'left', // string; direction
+	      duration: 2 // integer; duration in seconds
+	    },
+
+	    onReady: false // function;
+
+	});
+-
+## Methods:
+
+
+
+### switch([pageId], [pageTask], [pageContent])
 
 Manual Switch Page
 
-### Examples:
+###### Examples:
 
 	var myPager = new cPager()
 
@@ -54,9 +148,9 @@ Manual Switch Page
 	var myPager = new cPager({
 		tasks: {
 			'myTask': function (pageId, pageContent, event, dom) {
-				
+
 				alert('myTask before edit Dom');
-			
+
 				return function () {
 					alert('myTask after insert into Dom');
 				};
@@ -67,73 +161,116 @@ Manual Switch Page
 
 	myPager.switch('home','myTask','testContent'); // fires myTask() with Content-Data
 
-Version: 0.1.0
 
-### Params:
+###### Params:
 
-* **String** *[pageId=undefined]* The Name or Path from template-file
-* **String** *[pageTask=undefined]* The Name of the function set with init options
-* **String** *[pageContent=undefined]* Optional Parameter for data
+* **String** *[page=undefined]* The Name or Path from template-file
+* **String** *[task=undefined]* The Name of the function set with init options
+* **String** *[content=undefined]* Optional Parameter for data
+* **String** *[param=undefined]* Optional Parameters
 
-### Return:
+###### Return:
 
 * **Object** cPager object
 
-#####------------------------------------------------------
+-
 
-## events()
+### events()
 
 Set the click-events for all buttons inside the DOM
 (the click event will not fire if: the active site is still open )
 (the click event will not fire if: the button has offButton class )
 
-### Examples:
+###### Examples:
 
 	var myPager = new cPager()
 
 	myPager.events();
 
-Version: 0.1.0
 
-### Return:
+###### Return:
 
 * **Boolean** true or false
 
-#####------------------------------------------------------
+-
 
-## getHistory()
+### ctrl()
+
+Add Controller/Tasks to the global Framework to use inside the HTML and after events() function.
+
+###### Examples:
+
+*index.html:*
+
+	var myPager = new cPager({
+		container: 'page',
+		start: {
+			page: 'home'
+		},
+		ctrlPath: './tasks',
+		ctrl: ['myController']
+	});
+
+*myController.js:*
+
+	myPager.ctrl('user', {
+
+	  get: function () {
+	    console.log('---> get');
+	    return function () {
+	      console.log('---> get after');
+	    };
+	  },
+
+	  set: function () {
+	    console.log('---> set');
+	  }
+
+	});
+
+
+
+###### Return:
+
+* **Boolean** true
+
+-
+
+
+### getHistory()
 
 Return global History
 
-### Examples:
+###### Examples:
 
 	var myPager = new cPager()
 
 	myPager.getHistory();
 
-Version: 0.1.0
 
-### Return:
+###### Return:
 
 * **Array** History array
 
-#####------------------------------------------------------
+-
 
-## removeHistory()
+### removeHistory()
 
 Remove x Items from global History
 
-### Examples:
+###### Examples:
 
 	var myPager = new cPager()
 
 	myPager.removeHistory(2); // remove the last
 
-Version: 0.1.0
-
-### Return:
+###### Return:
 
 * **Boolean** true
 
-<!-- End src/cPager.js -->
 
+-
+-
+
+Author: Christian Marienfeld  - *post@chrisand.de*
+<!-- End src/cPager.js -->
