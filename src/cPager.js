@@ -576,7 +576,7 @@ function cPager(param) {
 		document.body.className = that._bodyClass+' ' || '';
 			document.body.className += ' cPager-body-'+newClass;
 	
-			if (param && param.animate) {
+			if (param && param.direction) {
 				this.animatePage(that, pageId, pageTask, pageContent, param, oldPage, newClass, response);
 		} else {
 				oldPage.innerHTML = response;
