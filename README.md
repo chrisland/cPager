@@ -128,6 +128,7 @@ Version: 0.4.x
 	    },
 
 	    onReady: false // function;
+		onSuccess: false // function;
 
 	});
 -
