@@ -10,7 +10,7 @@
 * Easy JS one-Page system framework with template files
 *
 * @class cPager
-* @version 0.4.3
+* @version 0.5.2
 * @license MIT
 *
 * @author Christian Marienfeld post@chrisand.de
@@ -21,7 +21,7 @@
 *		container: 'page',
 *		start: 'home',
 *		tasks: {
-*			'myTask': function (pageId, pageContent, event, dom) {
+*			'myTask': function (pageUrl, pageContent, event, dom) {
 *
 *				alert('myTask before');
 *
@@ -57,41 +57,47 @@ function cPager(param) {
     this._pageClass = '';
     this._bodyClass = '';
     this.animate = false;
+    this._fieldsDB = false;
 
     this._opt = {
 
-    debug: false,
+        debug: false,
 
-    container: 'page',
+        container: 'page',
 
-    handler: 'pageBtn',
-    handlerOff: 'pageBtnOff',
+        handler: 'pageBtn',
+        handlerOff: 'pageBtnOff',
+        
+        handlerField: 'pageField',
 
-    tmpl: [],
-    tmplPath: 'tmpl',
 
-    ctrl: [],
-    ctrlPath: 'tasks',
+        tmpl: [],
+        tmplPath: 'tmpl',
 
-    tasks: [],
+        ctrl: [],
+        ctrlPath: 'tasks',
 
-    start: {
-        page: false,
-        task: false,
-        content: false,
-        param: {
-            history: true
-        }
-    },
+        api: [],
 
-    animate: {
-        timing: false,
-        direction: 'left',
-        duration: 2
-    },
+        tasks: [],
 
-    onReady: false,
-    onSuccess: false
+        start: {
+            page: false,
+            task: false,
+            content: false,
+            param: {
+                history: true
+            }
+        },
+
+        animate: {
+            timing: false,
+            direction: 'left',
+            duration: 2
+        },
+
+        onReady: false,
+        onSuccess: false
 
 
 
@@ -103,14 +109,26 @@ function cPager(param) {
     this._opt = this._h.deepExtend(this._opt, param);
 
     var debug = this._opt.debug;
-    var count = this._opt.ctrl.length + +this._opt.tmpl.length || 0;
+    var count = this._opt.ctrl.length + +this._opt.tmpl.length +this._opt.api.length || 0;
 
     function done() {
         count--;
         if ( count == 0 || count < 0 ) {
 
+
+            var cPagerFields = localStorage.getItem('cPagerFields');
+            if (!cPagerFields) {
+                cPagerFields = '{}';
+            }
+            self._fieldsDB = JSON.parse(cPagerFields) || {};
+
+
+
+
             if (self._opt.onReady && typeof self._opt.onReady === 'function') {
-                console.log('cPager - onReady');
+                if (debug) {
+	                console.log('cPager - onReady');
+	            }
                 self._opt.onReady();
             }
 
@@ -162,9 +180,18 @@ function cPager(param) {
     // LOAD AJAX TPL PAGES
     this.ajaxCache = {};
     if (this._opt.tmpl.length > 0) {
-        this._h.cache(this, this._opt.tmpl, function (name) {
+        this._h.cache(this, this._opt.tmpl, 'tmpl', function (name) {
             if (debug) {
-                console.log('cPager - cache page: '+name);
+                console.log('cPager - cache tmpl page: ',name);
+            }
+            done();
+        });
+    }
+
+    if (this._opt.api.length > 0) {
+        this._h.cache(this, this._opt.api, 'api', function (name) {
+            if (debug) {
+                console.log('cPager - cache api page: ',name);
             }
             done();
         });
@@ -203,7 +230,7 @@ cPager.prototype.param = function (param) {
 *
 *	var myPager = new cPager({
 *		tasks: {
-*			'myTask': function (pageId, pageContent, event, dom) {
+*			'myTask': function (pageUrl, pageContent, event, dom) {
 *
 *				alert('myTask before edit Dom');
 *
@@ -221,7 +248,7 @@ cPager.prototype.param = function (param) {
 * @function switch
 * @version 0.1.5
 *
-* @param {String} [pageId=undefined] The Name or Path from template-file
+* @param {String} [pageUrl=undefined] The Name or Path from template-file
 * @param {String} [pageTask=undefined] The Name of the function set with init options
 * @param {String} [pageContent=undefined] Optional Parameter for data
 *
@@ -231,8 +258,12 @@ cPager.prototype.param = function (param) {
 */
 
 
-cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
+cPager.prototype.switch = function (pageUrl, pageTask, pageContent, param) {
 
+    
+
+    this.load(pageUrl, pageTask, pageContent, param);
+    /*
     var event = null;
     if (param && param.event) { event = param.event; }
 
@@ -242,9 +273,9 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
         var history = this.getHistory();
         var last = history[history.length -anz];
         if (!last) { return false; }
-        if (!last.id) { return false }
+        if (!last.url) { return false }
         event = event || last.param.event;
-        pageId = last.id;
+        pageUrl = last.url;
         pageTask = last.task;
         pageContent = last.content;
         param = param || last.param;
@@ -256,10 +287,72 @@ cPager.prototype.switch = function (pageId, pageTask, pageContent, param) {
         param = {};
     }
 
-    this.switch.task = this._h.getTask( event, pageTask, pageContent, pageId, this, param);
+    this.switch.task = this._h.getTask( event, pageTask, pageContent, pageUrl, this, param);
     if (pageTask && !this.switch.task) { return false; }
-    if (pageId) {
-        this._h.loadPage( this, './'+this._opt.tmplPath+'/'+pageId+'.tpl', pageId, pageTask, pageContent, param);
+    if (pageUrl) {
+        this._h.loadPage( this, './'+this._opt.tmplPath+'/'+pageUrl+'.tpl', pageUrl, pageTask, pageContent, param);
+    } else if (this.switch.task && typeof this.switch.task === 'function') {
+        this.switch.task();
+    }
+    */
+
+    return this;
+
+};
+
+
+/**
+* Manual Load Page
+*
+* ### Examples:
+*
+*	var myPager = new cPager()
+*
+*	myPager.load(2);
+*
+*
+* @function load
+* @version 0.1.5
+*
+* @param {String} [pageUrl=undefined] The ID or Path from template-file
+* @param {String} [pageTask=undefined] The Name of the function set with init options
+* @param {String} [pageContent=undefined] Optional Parameter for data
+*
+* @return {Object} cPager object
+*
+* @api public
+*/
+
+
+cPager.prototype.load = function (pageUrl, pageTask, pageContent, param) {
+
+    var event = null;
+    if (param && param.event) { event = param.event; }
+
+    if (pageTask == 'back') {
+
+        var anz = parseInt(pageContent)+1 || 2;
+        var history = this.getHistory();
+        var last = history[history.length -anz];
+        if (!last) { return false; }
+        if (!last.url) { return false }
+        event = event || last.param.event;
+        pageUrl = last.url;
+        pageTask = last.task;
+        pageContent = last.content;
+        param = param || last.param;
+        this.removeHistory(anz);
+
+    }
+
+    if (!param) {
+        param = {};
+    }
+
+    this.switch.task = this._h.getTask( event, pageTask, pageContent, pageUrl, this, param);
+    if (pageTask && !this.switch.task) { return false; }
+    if (pageUrl) {
+        this._h.loadPage( this, './'+this._opt.tmplPath+'/'+pageUrl+'.tpl', pageUrl, pageTask, pageContent, param);
     } else if (this.switch.task && typeof this.switch.task === 'function') {
         this.switch.task();
     }
@@ -300,19 +393,19 @@ cPager.prototype.events = function () {
         if (that._opt.handlerOff && this.classList.contains(that._opt.handlerOff)) {	return false; }
         if (that.animate) { return false;	}
 
-        var pageId = this.getAttribute('data-page'),
+        var pageUrl = this.getAttribute('data-page'),
             pageTask = this.getAttribute('data-task'),
             pageContent = this.getAttribute('data-content'),
             pageContainer = this.getAttribute('data-container') || false,
             pageAnimate = this.getAttribute('data-animate') || that._opt.animate.timing,
-            pageDuration = this.getAttribute('data-duration') || false,
-            pageDirection = this.getAttribute('data-direction') || false,
+            pageDuration = this.getAttribute('data-duration') || that._opt.animate.duration,
+            pageDirection = this.getAttribute('data-direction') || that._opt.animate.direction,
             pageForce = this.getAttribute('data-force') || false,
             history = this.getAttribute('data-history') || true;
 
-        if ( pageId || pageTask ) {
-            if (that._open == pageId && !pageForce) { return false; }
-      var param = {
+        if ( pageUrl || pageTask ) {
+            if (that._open == pageUrl && !pageForce) { return false; }
+            var param = {
                 event: e,
                 history: history,
                 animate: pageAnimate,
@@ -320,7 +413,8 @@ cPager.prototype.events = function () {
                 direction: pageDirection,
                 container: pageContainer || false
             };
-            that.switch(pageId, pageTask, pageContent, param);
+            console.log(param);
+            that.switch(pageUrl, pageTask, pageContent, param);
         }
 
     };
@@ -332,12 +426,62 @@ cPager.prototype.events = function () {
             pageBtns[i].onclick = clickHandler;
         }
     }
+
+    var changeHandler = function (e) {
+        var fieldName = e.target.getAttribute('name')
+        if ( fieldName ) {
+            this.setFieldDB( this._open, fieldName, e.target.value);
+        }
+    };
+
+    var pageFields = document.getElementsByClassName(this._opt.handlerField);
+    for(var i = 0; i < pageFields.length; i++) {
+        var fieldName = pageFields[i].getAttribute('name');
+        if ( fieldName && !pageFields[i].onchange ) {
+            pageFields[i].onchange = changeHandler.bind(this);
+            pageFields[i].value = this.getFieldDB( this._open, fieldName );
+        }
+    }
+
     return true;
 
 };
 
 
 
+
+cPager.prototype.getFieldDB = function (url, fieldName) {
+
+    if ( !this._fieldsDB[url] ) {
+        return '';
+    }
+    if ( !this._fieldsDB[url][fieldName] ) {
+        return '';
+    }
+    return this._fieldsDB[url][fieldName];
+};
+
+
+
+cPager.prototype.setFieldDB = function (url, fieldName, value) {
+
+    if (!url) {
+        return false;
+    }
+    if (!fieldName) {
+        return false;
+    }
+    if (!value) {
+        value = '';
+    }
+    if ( !this._fieldsDB[url] ) {
+        this._fieldsDB[url] = {};
+    }
+    this._fieldsDB[url][fieldName] = value;
+
+    localStorage.setItem('cPagerFields', JSON.stringify(this._fieldsDB) );
+    return true;
+};
 
 
 
@@ -406,10 +550,10 @@ cPager.prototype.removeHistory = function (anz) {
 
 
 
-cPager.prototype.addHistory = function (pageId, pageTask, pageContent, pageParam) {
+cPager.prototype.addHistory = function (pageUrl, pageTask, pageContent, pageParam) {
 
         var obj = {
-            id: pageId,
+            url: pageUrl,
             task: pageTask,
             content: pageContent,
             param: pageParam
@@ -446,7 +590,7 @@ cPager.prototype.addHistory = function (pageId, pageTask, pageContent, pageParam
 *
 * @function addTask
 *
-* @param {String} [pageId=undefined] The Name or Path from template-file
+* @param {String} [pageUrl=undefined] The Name or Path from template-file
 *
 * @return {Boolean} true
 *
@@ -474,10 +618,35 @@ cPager.prototype.ctrl = function (key, obj) {
 
 
 
+function nodeScriptReplace(node) {
+    if ( nodeScriptIs(node) === true ) {
+            node.parentNode.replaceChild( nodeScriptClone(node) , node );
+    }
+    else {
+            var i        = 0;
+            var children = node.childNodes;
+            while ( i < children.length ) {
+                    nodeScriptReplace( children[i++] );
+            }
+    }
+
+    return node;
+}
+function nodeScriptIs(node) {
+    return node.tagName === 'SCRIPT';
+}
+function nodeScriptClone(node){
+    var script  = document.createElement("script");
+    script.text = node.innerHTML;
+    for( var i = node.attributes.length-1; i >= 0; i-- ) {
+            script.setAttribute( node.attributes[i].name, node.attributes[i].value );
+    }
+    return script;
+}
 
 
 cPager.prototype._h = {
-
+    
     deepExtend: function(out) {
         out = out || {};
 
@@ -499,7 +668,7 @@ cPager.prototype._h = {
 
         return out;
     },
-    getTask : function (e, task, content, pageId, that, param) {
+    getTask : function (e, task, content, pageUrl, that, param) {
 
         if (that._opt.tasks && task) {
             var t = task.split('.');
@@ -515,12 +684,12 @@ cPager.prototype._h = {
                 }
                 if (func && typeof func == 'function') {
                     return func({
-            page: pageId,
-            content: content,
-            event: e,
-            node: that._page,
-            scope: scope
-          });
+                        page: pageUrl || that._open,
+                        content: content,
+                        event: e,
+                        node: that._page,
+                        scope: scope
+                    });
                 } else {
                     console.error('cPager Error: missing task function', task);
                     return false;
@@ -530,7 +699,7 @@ cPager.prototype._h = {
         return false;
 
     },
-    successPage: function (that, pageId, pageTask, pageContent, param, dom) {
+    successPage: function (that, pageUrl, pageTask, pageContent, param, dom) {
 
         if (that.switch.task && typeof that.switch.task === "function") {
             that.switch.afterAnimate = that.switch.task(dom || that._page);
@@ -539,18 +708,20 @@ cPager.prototype._h = {
             that.events();
         }
         if ( param && String(param.history) != 'false') {
-            that.addHistory(pageId, pageTask, pageContent, param);
+            that.addHistory(pageUrl, pageTask, pageContent, param);
         }
 
         if ( param && param.onReady && typeof param.onReady === 'function' ) {
             param.onReady();
         }
 
+        nodeScriptReplace(dom);
+
         if (that._opt.onSuccess && typeof that._opt.onSuccess === 'function') {
             that._opt.onSuccess({
                 scope: that,
                 data: {
-                    page: pageId,
+                    page: pageUrl || that._open,
                     task: pageTask,
                     content: pageContent,
                     param: param
@@ -560,7 +731,7 @@ cPager.prototype._h = {
           }
 
     },
-    successAnimate: function (that, pageId, pageTask, pageContent, param, newPage) {
+    successAnimate: function (that, pageUrl, pageTask, pageContent, param, newPage) {
 
         that.animate = false;
         if (that.switch.task && that.switch.afterAnimate && typeof that.switch.afterAnimate === "function") {
@@ -569,7 +740,7 @@ cPager.prototype._h = {
         that.events();
 
     },
-    appendPage: function (response, pageId, pageTask, pageContent, that, param) {
+    appendPage: function (response, pageUrl, pageTask, pageContent, that, param) {
 
         var oldPage = that._page;
         if (param && param.container) {
@@ -579,24 +750,26 @@ cPager.prototype._h = {
                 return false;
             }
         }
-        var newClass = pageId.replace(/\//ig, '-');
+        var newClass = pageUrl.replace(/\//ig, '-');
         document.body.className = that._bodyClass+' ' || '';
         document.body.className += ' cPager-body-'+newClass;
 
         if (param && param.direction) {
-            this.animatePage(that, pageId, pageTask, pageContent, param, oldPage, newClass, response);
+            this.animatePage(that, pageUrl, pageTask, pageContent, param, oldPage, newClass, response);
     } else {
             oldPage.innerHTML = response;
             oldPage.className = that._pageClass+' ' || '';
             oldPage.className += 'cPager-'+newClass;
 
+            //nodeScriptReplace(oldPage);
+
             that._lastopen = that._open;
-            that._open = pageId;
-            this.successPage(that, pageId, pageTask, pageContent, param, oldPage);
+            that._open = pageUrl;
+            this.successPage(that, pageUrl, pageTask, pageContent, param, oldPage);
         }
 
     },
-    animatePage: function (that, pageId, pageTask, pageContent, param, oldPage, newClass, response) {
+    animatePage: function (that, pageUrl, pageTask, pageContent, param, oldPage, newClass, response) {
 
         that.animate = true;
 
@@ -621,9 +794,11 @@ cPager.prototype._h = {
         newPage.className += 'cPager-'+newClass;
         newPage.innerHTML = response;
         newPage.style.position = 'fixed';
-
+        
         newPage.style.width = oldPage.clientWidth+'px';
         newPage.style.height = oldPage.clientHeight+'px';
+
+        //nodeScriptReplace(newPage);
 
         switch (param.direction) {
             case 'left':
@@ -667,9 +842,9 @@ cPager.prototype._h = {
 
             //console.log(that);
             that._lastopen = that._open;
-            that._open = pageId;
+            that._open = pageUrl;
             that._page = newPage;
-            that._h.successPage(that, pageId, pageTask, pageContent, param, newPage);
+            that._h.successPage(that, pageUrl, pageTask, pageContent, param, newPage);
 
 
         }, 100);
@@ -679,7 +854,7 @@ cPager.prototype._h = {
             //console.log('--ende', oldPage, that._page, that);
 
             oldPage.remove();
-            that._h.successAnimate(that, pageId, pageTask, pageContent, param, newPage);
+            that._h.successAnimate(that, pageUrl, pageTask, pageContent, param, newPage);
 
             oldPage.style.transition = '';
             newPage.style.transition = '';
@@ -691,32 +866,81 @@ cPager.prototype._h = {
 
 
     },
-    loadPage: function (that, path, pageId, pageTask, pageContent, param ) {
+    loadPage: function (that, path, pageUrl, pageTask, pageContent, param ) {
+
+        //console.log('loadPage - ajaxCache:', path, that.ajaxCache);
 
         var thatAjax = this;
         if ( that.ajaxCache[path] ) {
-            thatAjax.appendPage(that.ajaxCache[path], pageId, pageTask, pageContent, that, param);
+            //console.log(' - found in cache');
+            thatAjax.appendPage(that.ajaxCache[path], pageUrl, pageTask, pageContent, that, param);
         } else {
             this.sendRequest(path,function (req) {
+                //console.log(' - NOT found in cache, path:',path);
                 that.ajaxCache[path] = req;
-                thatAjax.appendPage(req, pageId, pageTask, pageContent, that, param);
+                thatAjax.appendPage(req, pageUrl, pageTask, pageContent, that, param);
             });
         }
 
     },
-    cache: function (that, arr, callback) {
+    cache: function (that, arr, type, callback) {
 
         for (var i=0;i<arr.length;i++) {
-            var path = './'+that._opt.tmplPath+'/'+arr[i]+'.tpl';
-            if (that._opt.debug) {
-                path = path+'?t='+Math.random(1,100);
-            }
-            this.sendRequest(path,function (req, url) {
-                that.ajaxCache[url] = req;
-                if (callback && typeof callback === 'function') {
-                callback(url);
+
+            if (type == 'api') {
+                //console.log( arr[i] );
+
+                if (arr[i]) {
+                    
+                    fetch(arr[i])
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(json) {
+                        //console.log('return: ',myJson);
+
+                        if (json.version < 1 ) {
+                            // load from localStorage
+                        } else {
+                            // sync
+                            if (json.data) {
+                                for (var i in json.data) {
+                                    //console.log(i);
+                                    //that.ajaxCache[i] = json[i];
+                                    var path = './'+that._opt.tmplPath+'/'+i+'.tpl';
+                                    //console.log('path',path);
+                                    localStorage.setItem(path, json.data[i].html);
+                                    that.ajaxCache[path] = json.data[i].html;
+                                }
+                            }
+                            
+                        }
+
+                        
+                        //console.log(that.ajaxCache);
+                        //that.ajaxCache[url] = req;
+
+                        if (callback && typeof callback === 'function') {
+                            callback(json);
+                        }
+                    }).catch(function(err) {  
+                        console.error('Failed to fetch page: ', err);  
+                    });
                 }
-            });
+                
+            } else {
+                var path = './'+that._opt.tmplPath+'/'+arr[i]+'.tpl';
+                if (that._opt.debug) {
+                    path = path+'?t='+Math.random(1,100);
+                }
+                this.sendRequest(path,function (req, url) {
+                    that.ajaxCache[url] = req;
+                    if (callback && typeof callback === 'function') {
+                        callback(url);
+                    }
+                });
+            }
+            
         }
 
     },
@@ -725,7 +949,7 @@ cPager.prototype._h = {
         if (window.jQuery) {
             jQuery.ajax({url: url, dataType: 'html', cache: false })
             .done(function(data) { callback(data, url); })
-            .fail(function(e) { console.log( "cPager - jQuery ajax error", e ); });
+            .fail(function(e) { console.log( "cPager - jQuery ajax error", url, e ); });
 
         } else {
             var XMLHttpFactories = [
